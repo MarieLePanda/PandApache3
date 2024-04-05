@@ -1,0 +1,56 @@
+# Ignore les fichiers et répertoires générés par Visual Studio
+.vs/
+bin/
+obj/
+
+# Ignore les fichiers de build
+*.dll
+*.pdb
+*.exe
+*.zip
+*.bak
+*.log
+
+# Ignore les fichiers de configuration utilisateur
+*.suo
+*.user
+*.sln.docstates
+
+# Ignore les fichiers de cache et les sauvegardes
+[Tt]humbs.db
+*.cache
+*.log
+*.log.*
+*.bak
+*.cache
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.pdb
+*.idb
+*.obj
+*.pch
+*.res
+*.dll
+*.exe
+*.aps
+*.lib
+*.ncb
+*.sbr
+*.sdf
+*.opensdf
+*.cachefile
+*.vc.db
+*.VC.opendb
+
+# Ignore les fichiers temporaires
+*.tmp
+*.temp
+*.bak
+*.cache
+*.orig

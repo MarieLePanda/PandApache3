@@ -1,0 +1,476 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\connectionutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\connectionutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\requesthandling\\httpresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\requesthandling\\httpresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\connectionmanagement\\socketwrapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\connectionmanagement\\socketwrapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\connectionmanagement\\isocketwrapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\connectionmanagement\\isocketwrapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\middleware\\routermiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\middleware\\routermiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\connectionmanagement\\connectionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\connectionmanagement\\connectionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\middleware\\loggermiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\middleware\\loggermiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\configuration\\serverconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\configuration\\serverconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\middleware\\terminalmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\middleware\\terminalmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\requesthandling\\httprequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\requesthandling\\httprequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\responsegeneration\\responsegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\responsegeneration\\responsegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\loggingandmonitoring\\ilogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\loggingandmonitoring\\ilogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\errorhandling\\errorhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\errorhandling\\errorhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\errorhandling\\toomanyconnectionsexception.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\errorhandling\\toomanyconnectionsexception.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\loggingandmonitoring\\logger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\loggingandmonitoring\\logger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\configuration\\iserverconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\configuration\\iserverconfiguration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\middleware\\imiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\middleware\\imiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\requesthandling\\requestparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\requesthandling\\requestparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\requesthandling\\httpcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\requesthandling\\httpcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\responsegeneration\\ifilemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\responsegeneration\\ifilemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\responsegeneration\\diskfilemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\responsegeneration\\diskfilemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\routing\\router.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\routing\\router.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\routing\\route.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\routing\\route.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\response.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\response.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|c:\\users\\lgirardin\\source\\repos\\pandapache3\\src\\request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3AA079F9-A2F5-4983-9A43-8FE9A7C9938F}|PandApache3.csproj|solutionrelative:src\\request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 7,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "TerminalMiddleware.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\TerminalMiddleware.cs",
+              "RelativeDocumentMoniker": "src\\Middleware\\TerminalMiddleware.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\TerminalMiddleware.cs",
+              "RelativeToolTip": "src\\Middleware\\TerminalMiddleware.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:47:37.4Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ServerConfiguration.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Configuration\\ServerConfiguration.cs",
+              "RelativeDocumentMoniker": "src\\Configuration\\ServerConfiguration.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Configuration\\ServerConfiguration.cs",
+              "RelativeToolTip": "src\\Configuration\\ServerConfiguration.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAuAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:44:10.416Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "RouterMiddleware.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\RouterMiddleware.cs",
+              "RelativeDocumentMoniker": "src\\Middleware\\RouterMiddleware.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\RouterMiddleware.cs",
+              "RelativeToolTip": "src\\Middleware\\RouterMiddleware.cs",
+              "ViewState": "AQIAACEAAAAAAAAAAAAowDcAAAA0AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:47:22.486Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "LoggerMiddleware.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\LoggerMiddleware.cs",
+              "RelativeDocumentMoniker": "src\\Middleware\\LoggerMiddleware.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\LoggerMiddleware.cs",
+              "RelativeToolTip": "src\\Middleware\\LoggerMiddleware.cs",
+              "ViewState": "AQIAAAwAAAAAAAAAAAAewBoAAAAMAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:47:06.646Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Server.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Server.cs",
+              "RelativeDocumentMoniker": "src\\Server.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Server.cs",
+              "RelativeToolTip": "src\\Server.cs",
+              "ViewState": "AQIAAAgAAAAAAAAAAAAQwBoAAAA+AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:45:23.225Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ConnectionManager.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionManagement\\ConnectionManager.cs",
+              "RelativeDocumentMoniker": "src\\ConnectionManagement\\ConnectionManager.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionManagement\\ConnectionManager.cs",
+              "RelativeToolTip": "src\\ConnectionManagement\\ConnectionManager.cs",
+              "ViewState": "AQIAAF8AAAAAAAAAAAAnwHIAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:48:26.038Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ConnectionUtils.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionUtils.cs",
+              "RelativeDocumentMoniker": "src\\ConnectionUtils.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionUtils.cs",
+              "RelativeToolTip": "src\\ConnectionUtils.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAAAgwCwAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:45:02.359Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "HttpResponse.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\HttpResponse.cs",
+              "RelativeDocumentMoniker": "src\\RequestHandling\\HttpResponse.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\HttpResponse.cs",
+              "RelativeToolTip": "src\\RequestHandling\\HttpResponse.cs",
+              "ViewState": "AQIAAAcAAAAAAAAAAAAgwBYAAABIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:46:43.366Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ISocketWrapper.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionManagement\\ISocketWrapper.cs",
+              "RelativeDocumentMoniker": "src\\ConnectionManagement\\ISocketWrapper.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionManagement\\ISocketWrapper.cs",
+              "RelativeToolTip": "src\\ConnectionManagement\\ISocketWrapper.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA8AAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:48:34.739Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SocketWrapper.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionManagement\\SocketWrapper.cs",
+              "RelativeDocumentMoniker": "src\\ConnectionManagement\\SocketWrapper.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ConnectionManagement\\SocketWrapper.cs",
+              "RelativeToolTip": "src\\ConnectionManagement\\SocketWrapper.cs",
+              "ViewState": "AQIAAA4AAAAAAAAAAAAgwB0AAAA1AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:48:44.267Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "HttpRequest.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\HttpRequest.cs",
+              "RelativeDocumentMoniker": "src\\RequestHandling\\HttpRequest.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\HttpRequest.cs",
+              "RelativeToolTip": "src\\RequestHandling\\HttpRequest.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:46:35.21Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ResponseGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ResponseGeneration\\ResponseGenerator.cs",
+              "RelativeDocumentMoniker": "src\\ResponseGeneration\\ResponseGenerator.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ResponseGeneration\\ResponseGenerator.cs",
+              "RelativeToolTip": "src\\ResponseGeneration\\ResponseGenerator.cs",
+              "ViewState": "AQIAAAEAAAAAAAAAAAAAABcAAAAMAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:46:15.173Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "TooManyConnectionsException.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ErrorHandling\\TooManyConnectionsException.cs",
+              "RelativeDocumentMoniker": "src\\ErrorHandling\\TooManyConnectionsException.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ErrorHandling\\TooManyConnectionsException.cs",
+              "RelativeToolTip": "src\\ErrorHandling\\TooManyConnectionsException.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:48:13.23Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ILogger.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\LoggingAndMonitoring\\ILogger.cs",
+              "RelativeDocumentMoniker": "src\\LoggingAndMonitoring\\ILogger.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\LoggingAndMonitoring\\ILogger.cs",
+              "RelativeToolTip": "src\\LoggingAndMonitoring\\ILogger.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:47:46.326Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Logger.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\LoggingAndMonitoring\\Logger.cs",
+              "RelativeDocumentMoniker": "src\\LoggingAndMonitoring\\Logger.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\LoggingAndMonitoring\\Logger.cs",
+              "RelativeToolTip": "src\\LoggingAndMonitoring\\Logger.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:47:53.413Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ErrorHandler.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ErrorHandling\\ErrorHandler.cs",
+              "RelativeDocumentMoniker": "src\\ErrorHandling\\ErrorHandler.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ErrorHandling\\ErrorHandler.cs",
+              "RelativeToolTip": "src\\ErrorHandling\\ErrorHandler.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAABUAAABDAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:48:04.294Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "IServerConfiguration.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Configuration\\IServerConfiguration.cs",
+              "RelativeDocumentMoniker": "src\\Configuration\\IServerConfiguration.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Configuration\\IServerConfiguration.cs",
+              "RelativeToolTip": "src\\Configuration\\IServerConfiguration.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:48:56.148Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "IMiddleware.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\IMiddleware.cs",
+              "RelativeDocumentMoniker": "src\\Middleware\\IMiddleware.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Middleware\\IMiddleware.cs",
+              "RelativeToolTip": "src\\Middleware\\IMiddleware.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:46:57.765Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "RequestParser.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\RequestParser.cs",
+              "RelativeDocumentMoniker": "src\\RequestHandling\\RequestParser.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\RequestParser.cs",
+              "RelativeToolTip": "src\\RequestHandling\\RequestParser.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:46:48.858Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "HttpContext.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\HttpContext.cs",
+              "RelativeDocumentMoniker": "src\\RequestHandling\\HttpContext.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\RequestHandling\\HttpContext.cs",
+              "RelativeToolTip": "src\\RequestHandling\\HttpContext.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:46:23.482Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "IFileManager.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ResponseGeneration\\IFileManager.cs",
+              "RelativeDocumentMoniker": "src\\ResponseGeneration\\IFileManager.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ResponseGeneration\\IFileManager.cs",
+              "RelativeToolTip": "src\\ResponseGeneration\\IFileManager.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:46:06.378Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "DiskFileManager.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ResponseGeneration\\DiskFileManager.cs",
+              "RelativeDocumentMoniker": "src\\ResponseGeneration\\DiskFileManager.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\ResponseGeneration\\DiskFileManager.cs",
+              "RelativeToolTip": "src\\ResponseGeneration\\DiskFileManager.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:45:56.034Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "Router.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Routing\\Router.cs",
+              "RelativeDocumentMoniker": "src\\Routing\\Router.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Routing\\Router.cs",
+              "RelativeToolTip": "src\\Routing\\Router.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:45:47.34Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "Route.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Routing\\Route.cs",
+              "RelativeDocumentMoniker": "src\\Routing\\Route.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Routing\\Route.cs",
+              "RelativeToolTip": "src\\Routing\\Route.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:45:37.478Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "Request.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Request.cs",
+              "RelativeDocumentMoniker": "src\\Request.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Request.cs",
+              "RelativeToolTip": "src\\Request.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:44:52.018Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "Response.cs",
+              "DocumentMoniker": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Response.cs",
+              "RelativeDocumentMoniker": "src\\Response.cs",
+              "ToolTip": "C:\\Users\\lgirardin\\source\\repos\\PandApache3\\src\\Response.cs",
+              "RelativeToolTip": "src\\Response.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-05T09:44:43.199Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 195,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
