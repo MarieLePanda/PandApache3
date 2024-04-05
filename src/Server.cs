@@ -3,6 +3,7 @@ using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.Middleware;
 using pandapache.src.RequestHandling;
 using pandapache.src.ResponseGeneration;
+using PandApache3.src.ResponseGeneration;
 
 class Program
 {
@@ -10,9 +11,10 @@ class Program
     {
         ConnectionManager connectionManager = new ConnectionManager();
         Logger.Initialize();
-        IFileManager diskFileManager = new DiskFileManager();
+        IFileManager fileManager = FileManagerFactory.Instance();
+
         TerminalMiddleware terminalMiddleware = new TerminalMiddleware();
-        RoutingMiddleware routingMiddleware = new RoutingMiddleware(terminalMiddleware.InvokeAsync, diskFileManager);
+        RoutingMiddleware routingMiddleware = new RoutingMiddleware(terminalMiddleware.InvokeAsync, fileManager);
         LoggerMiddleware loggerMiddleware = new LoggerMiddleware(routingMiddleware.InvokeAsync);
         Func<HttpContext, Task> pipeline = loggerMiddleware.InvokeAsync;
 

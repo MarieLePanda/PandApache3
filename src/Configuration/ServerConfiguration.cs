@@ -14,22 +14,24 @@ namespace pandapache.src.Configuration
         //General configuration
         public string ServerName { get; set; } = "PandApache3";
         public IPAddress ServerIP { get; set; } = System.Net.IPAddress.Any;
-        public int ServerPort { get; set; } = 80;
+        public int ServerPort { get; set; } = 5000;
 
         //Performance
         public int MaxAllowedConnections { get; set; } = 100;
         public int MaxRejectedConnections { get; set; } = 50;
 
         //Logging
-        public string LogFolder { get; set; } = @"/var/log/PandApache3/";
+        public string LogFolder { get; set; }
         public string LogFile { get; set; } = "PandApache3.log";
         public int MaxLogFile { get; set; } = 10;
         public int SizeLogFile { get; set; } = 1024;
         public string LogLevel { get; set; } = "info";
         //Routing
-        public string RootDirectory { get; set; } = @"/etc/PandApache3/www/";
+        public string RootDirectory { get; set; }
         public string Persistence { get; set; } = "disk";
+
         //Other
+        public string Platform{ get; set; }
         // Ajoutez d'autres propriétés de configuration selon vos besoins
 
         public static ServerConfiguration Instance
@@ -43,7 +45,30 @@ namespace pandapache.src.Configuration
                         if (instance == null)
                         {
                             instance = new ServerConfiguration();
-                            // Initialize configuration properties here if needed
+
+                            OperatingSystem os = Environment.OSVersion;
+
+                            if (os.Platform == PlatformID.Win32NT || os.Platform == PlatformID.Win32Windows)
+                            {
+                                instance.Platform = "WIN";
+                                instance._configurationPath = @"C:\PandApache3\conf\";
+                                instance.LogFolder = @"C:\PandApache3\log\";
+                                instance.RootDirectory = @"C:\PandApache3\www\";
+
+                            }
+                            // Vérifie si le système d'exploitation est Linux
+                            else if (os.Platform == PlatformID.Unix)
+                            {
+                                instance.Platform = "UNIX";
+                                instance._configurationPath = @"/etc/PandApache3/conf/";
+                                instance.LogFolder = @"/var/log/PandApache3/";
+                                instance.RootDirectory = @"/etc/PandApache3/www/";
+
+                            }
+                            else
+                            {
+                                throw new Exception("Operating system not supported");
+                            }
                         }
                     }
                 }
@@ -54,15 +79,17 @@ namespace pandapache.src.Configuration
         // Private constructor to prevent instantiation
         private ServerConfiguration() 
         {
-            _configurationPath = @"/etc/PandApache3/conf/";
+            if (File.Exists(_configurationPath))
+            {
+                // Initialisez FileSystemWatcher pour surveiller les changements dans le fichier de configuration
+                fileWatcher = new FileSystemWatcher();
+                fileWatcher.Path = _configurationPath;
+                fileWatcher.Filter = "*.conf";
+                fileWatcher.Changed += OnConfigurationFileChanged;
+                fileWatcher.EnableRaisingEvents = true;
+                ReloadConfiguration();
 
-            // Initialisez FileSystemWatcher pour surveiller les changements dans le fichier de configuration
-            fileWatcher = new FileSystemWatcher();
-            fileWatcher.Path = _configurationPath;
-            fileWatcher.Filter = "*.conf";
-            fileWatcher.Changed += OnConfigurationFileChanged;
-            fileWatcher.EnableRaisingEvents = true;
-            ReloadConfiguration();
+            }
         }
 
         private void OnConfigurationFileChanged(object sender, FileSystemEventArgs e)
@@ -104,7 +131,7 @@ namespace pandapache.src.Configuration
             }
             catch (Exception ex)
             {
-                throw new Exception("Erreur lors du chargement de la configuration du serveur.", ex);
+                throw new Exception("Error during configuration reload", ex);
             }
 
 
