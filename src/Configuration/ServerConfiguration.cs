@@ -12,7 +12,7 @@ namespace pandapache.src.Configuration
 
 
         //General configuration
-        public string ServerName { get; set; } = "MyApache";
+        public string ServerName { get; set; } = "PandApache3";
         public IPAddress ServerIP { get; set; } = System.Net.IPAddress.Any;
         public int ServerPort { get; set; } = 80;
 
@@ -21,13 +21,13 @@ namespace pandapache.src.Configuration
         public int MaxRejectedConnections { get; set; } = 50;
 
         //Logging
-        public string LogFolder { get; set; } = @"C:\MyApache\log\";
-        public string LogFile { get; set; } = "MyApache.log";
+        public string LogFolder { get; set; } = @"/var/log/PandApache3/";
+        public string LogFile { get; set; } = "PandApache3.log";
         public int MaxLogFile { get; set; } = 10;
         public int SizeLogFile { get; set; } = 1024;
         public string LogLevel { get; set; } = "info";
         //Routing
-        public string RootDirectory { get; set; } = @"C:\Apache\www\";
+        public string RootDirectory { get; set; } = @"/etc/PandApache3/www/";
         public string Persistence { get; set; } = "disk";
         //Other
         // Ajoutez d'autres propriétés de configuration selon vos besoins
@@ -54,7 +54,7 @@ namespace pandapache.src.Configuration
         // Private constructor to prevent instantiation
         private ServerConfiguration() 
         {
-            _configurationPath = @"C:\MyApache\conf\";
+            _configurationPath = @"/etc/PandApache3/conf/";
 
             // Initialisez FileSystemWatcher pour surveiller les changements dans le fichier de configuration
             fileWatcher = new FileSystemWatcher();
@@ -76,7 +76,7 @@ namespace pandapache.src.Configuration
         {
             // Implémentez la logique pour recharger les paramètres de configuration depuis le fichier
             Logger.LogInfo("New configuration detected");
-            string fullPath = Path.Combine(_configurationPath, "MyApache.conf");
+            string fullPath = Path.Combine(_configurationPath, "PandApache3.conf");
             if (!File.Exists(fullPath))
             {
                 throw new FileNotFoundException("The configuration file didn't exist", fullPath);

@@ -1,5 +1,6 @@
 ﻿using pandapache.src.RequestHandling;
 using pandapache.src.ResponseGeneration;
+using pandapache.src.Configuration;
 using System.Text;
 
 namespace pandapache.src.Middleware
@@ -24,7 +25,7 @@ namespace pandapache.src.Middleware
             Request request = context.Request;
             try
             {
-                string mainDirectory = @"C:\MyApache\www\";
+                string mainDirectory = ServerConfiguration.Instance.RootDirectory;
                 string filePath = Path.Combine(mainDirectory, GetFilePath(request.Path));
                 if (_FileManager.Exists(filePath))
                 {

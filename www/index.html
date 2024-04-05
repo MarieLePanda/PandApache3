@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to pandapache</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3, h4 {
+            color: #333;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .panda-logo {
+            display: block;
+            width: 150px;
+            margin: 0 auto;
+        }
+        .nav {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+        }
+        .nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .nav li {
+            display: inline;
+            margin-right: 20px;
+        }
+        .nav li:last-child {
+            margin-right: 0;
+        }
+        .nav a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <ul>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+            <li><a href="#usage">Usage</a></li>
+            <li><a href="#support">Support</a></li>
+        </ul>
+    </div>
+    <div class="container" id="installation">
+        <img src="panda-logo.png" alt="Pandapache Logo" class="panda-logo">
+        <h1>Welcome to pandapache</h1>
+        <h2>Installation</h2>
+        <p>To install pandapache on your system, follow these simple steps:</p>
+        <ol>
+            <li>Download the latest version of pandapache from the official website.</li>
+            <li>Extract the downloaded files to a directory on your computer.</li>
+            <li>Open a terminal window and navigate to the directory where you extracted the files.</li>
+            <li>Run the installation command: <code>./install.sh</code></li>
+            <li>Follow the on-screen instructions to complete the installation process.</li>
+        </ol>
+    </div>
+    <div class="container" id="configuration">
+        <h2>Configuration</h2>
+        <p>Once pandapache is installed, you can configure it according to your requirements:</p>
+        <ul>
+            <li>Open the configuration file located at <code>/etc/pandapache.conf</code>.</li>
+            <li>Adjust the settings as needed, such as specifying the root directory for your websites.</li>
+            <li>Save the changes and exit the text editor.</li>
+            <li>Restart the pandapache service to apply the new configuration.</li>
+        </ul>
+    </div>
+    <div class="container" id="usage">
+        <h2>Usage</h2>
+        <p>With pandapache installed and configured, you can start hosting your static websites:</p>
+        <ol>
+            <li>Create a new directory for your website files.</li>
+            <li>Place your HTML, CSS, and JavaScript files in the website directory.</li>
+            <li>Start the pandapache service using the command: <code>sudo systemctl start pandapache</code></li>
+            <li>Open a web browser and navigate to <code>http://localhost</code> to view your website.</li>
+        </ol>
+    </div>
+    <div class="container" id="support">
+        <h2>Support</h2>
+        <p>If you encounter any issues or have questions about pandapache, please feel free to contact our support team:</p>
+        <p>Email: <a href="mailto:support@pandapache.com">support@pandapache.com</a></p>
+    </div>
+    <div class="footer">
+        &copy; 2024 Pandapache. All rights reserved.
+    </div>
+</body>
+</html>

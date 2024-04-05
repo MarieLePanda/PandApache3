@@ -20,7 +20,7 @@ To build and start the PandApache server using Docker, follow these steps:
 
 1. Clone the PandApache GitHub repository:
    ```bash
-   git clone [url_du_dépôt]
+   git clone https://github.com/MarieLePanda/PandApache3.git
 	```
 2. Navigate to the cloned project folder:
     ```bash
@@ -32,10 +32,10 @@ To build and start the PandApache server using Docker, follow these steps:
     ```
 4. Run the container:
     ```bash
-    docker run -d -p 5000:80 pandapache
+    docker run -d -p 8080:8080 pandapache
  	```
 
-  This command will start the server and expose the service on port 5000 of your local machine. You can access your static site by navigating to http://localhost:5000 in your browser.
+  This command will start the server and expose the service on port 5000 of your local machine. You can access your static site by navigating to http://localhost:8080 in your browser.
 
 ## Deployment
 
