@@ -22,6 +22,62 @@ namespace pandapache.src.Middleware
         {
             Console.WriteLine("Router Middleware");
 
+            if (context.Request.Verb.ToUpper().Equals("GET"))
+            {
+                await GetHandlerAsync(context);
+            }
+            else if (context.Request.Verb.ToUpper().Equals("POST"))
+            {
+                await HandlerAsync(context);
+
+            }
+            else
+            {
+                context.Response = new HttpResponse(404);
+            }
+
+            await _next(context);
+
+        }
+
+        private static string GetFilePath(string path)
+        {
+            if (path == "/")
+                return "index.html";
+            else
+                return path.Substring(1);
+        }
+
+        private static async Task<HttpResponse> EchoHandler(Request request)
+        {
+            string body = request.Path.Replace("/echo/", "");
+            HttpResponse response = new HttpResponse(200)
+            {
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(body))
+            };
+            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
+            return response;
+        }
+
+        private static HttpResponse UserAgentHandler(Request request)
+        {
+            string userAgent = request.Headers["User-Agent"];
+            HttpResponse response = new HttpResponse(200)
+            {
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(userAgent))
+            };
+            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
+            return response;
+        }
+
+        private static void SetContentTypeAndLength(HttpResponse response, string contentType)
+        {
+            response.AddHeader("Content-Type", contentType);
+            response.AddHeader("Content-Length", response.Body.Length.ToString());
+        }
+
+        private async Task GetHandlerAsync(HttpContext context)
+        {
             Request request = context.Request;
             try
             {
@@ -93,7 +149,7 @@ namespace pandapache.src.Middleware
                 }
                 else if (request.Path.StartsWith("/echo"))
                 {
-                   context.Response = await EchoHandler(request);
+                    context.Response = await EchoHandler(request);
                 }
                 else if (request.Path.Equals("/user-agent"))
                 {
@@ -107,49 +163,17 @@ namespace pandapache.src.Middleware
             catch (Exception ex)
             {
                 // Log the exception
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Console.WriteLine($"An error occurred with a GET request: {ex.Message}");
                 // Return a generic error response
                 context.Response = new HttpResponse(500);
             }
-
-            await _next(context);
-
         }
 
-        private static string GetFilePath(string path)
+        private async Task PostHandlerAsync(HttpContext context)
         {
-            if (path == "/")
-                return "index.html";
-            else
-                return path.Substring(1);
-        }
 
-        private static async Task<HttpResponse> EchoHandler(Request request)
-        {
-            string body = request.Path.Replace("/echo/", "");
-            HttpResponse response = new HttpResponse(200)
-            {
-                Body = new MemoryStream(Encoding.UTF8.GetBytes(body))
-            };
-            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
-            return response;
-        }
-
-        private static HttpResponse UserAgentHandler(Request request)
-        {
-            string userAgent = request.Headers["User-Agent"];
-            HttpResponse response = new HttpResponse(200)
-            {
-                Body = new MemoryStream(Encoding.UTF8.GetBytes(userAgent))
-            };
-            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
-            return response;
-        }
-
-        private static void SetContentTypeAndLength(HttpResponse response, string contentType)
-        {
-            response.AddHeader("Content-Type", contentType);
-            response.AddHeader("Content-Length", response.Body.Length.ToString());
         }
     }
+
+   
 }
