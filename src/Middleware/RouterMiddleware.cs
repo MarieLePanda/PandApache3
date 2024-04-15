@@ -3,6 +3,7 @@ using pandapache.src.ResponseGeneration;
 using pandapache.src.Configuration;
 using System.Text;
 using System.Net.Mime;
+using PandApache3.src.ResponseGeneration;
 
 namespace pandapache.src.Middleware
 {
@@ -192,8 +193,7 @@ namespace pandapache.src.Middleware
                         string fileName = GetFileName(part);
                         string fileData = GetFileData(part);
 
-                        // Sauvegarde le fichier sur le serveur
-                        SaveFile(fileName, fileData);
+                        FileManagerFactory.Instance().SaveFile(fileName, fileData);
                     }
                 }
 
@@ -229,11 +229,6 @@ namespace pandapache.src.Middleware
             return string.Join("\n", lines.Skip(2).Take(lines.Length - 4));
         }
 
-        private void SaveFile(string fileName, string fileData)
-        {
-            // Écris les données du fichier dans un fichier sur le serveur
-            File.WriteAllText(fileName, fileData);
-        }
     }
 
    
