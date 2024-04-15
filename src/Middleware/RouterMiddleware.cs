@@ -4,6 +4,7 @@ using pandapache.src.Configuration;
 using System.Text;
 using System.Net.Mime;
 using PandApache3.src.ResponseGeneration;
+using pandapache.src.LoggingAndMonitoring;
 
 namespace pandapache.src.Middleware
 {
@@ -181,29 +182,37 @@ namespace pandapache.src.Middleware
 
         private async Task UploadHandlerAsync(HttpContext context)
         {
-            string boundary = GetBoundary(context.Request.Headers["Content-Type"]);
-            string[] parts = context.Request.Body.Split(new[] { boundary }, StringSplitOptions.RemoveEmptyEntries);
-
-            try
+            if (ServerConfiguration.Instance.AllowUpload)
             {
-                foreach (string part in parts)
-                {
-                    if (part.Contains("filename="))
-                    {
-                        string fileName = GetFileName(part);
-                        string fileData = GetFileData(part);
+                string boundary = GetBoundary(context.Request.Headers["Content-Type"]);
+                string[] parts = context.Request.Body.Split(new[] { boundary }, StringSplitOptions.RemoveEmptyEntries);
 
-                        FileManagerFactory.Instance().SaveFile(fileName, fileData);
+                try
+                {
+                    foreach (string part in parts)
+                    {
+                        if (part.Contains("filename="))
+                        {
+                            string fileName = GetFileName(part);
+                            string fileData = GetFileData(part);
+                            FileManagerFactory.Instance().SaveFile(ServerConfiguration.Instance.DocumentDirectory, fileName, fileData);
+                        }
                     }
+
+                    context.Response = new HttpResponse(200);
+
+                }
+                catch (Exception ex)
+                {
+                    context.Response = new HttpResponse(500);
+                    Logger.LogError($"Error during file saving: {ex.Message}");
                 }
 
-                context.Response = new HttpResponse(200);
-
             }
-            catch (Exception ex)
+            else
             {
-                context.Response = new HttpResponse(500);
-
+                context.Response = new HttpResponse(413);
+                Logger.LogWarning("Document upload not allowed");
             }
         }
 
