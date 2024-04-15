@@ -2,6 +2,7 @@
 using pandapache.src.ResponseGeneration;
 using pandapache.src.Configuration;
 using System.Text;
+using System.Net.Mime;
 
 namespace pandapache.src.Middleware
 {
@@ -28,8 +29,16 @@ namespace pandapache.src.Middleware
             }
             else if (context.Request.Verb.ToUpper().Equals("POST"))
             {
-                await HandlerAsync(context);
+                if (context.Request.Headers["Content-Type"] != null && context.Request.Headers["Content-Type"].StartsWith("multipart/form-data"))
+                {
+                    // Gérer l'upload de fichiers
+                    UploadHandlerAsync(context);
+                }
+                else
+                {
+                    context.Response = new HttpResponse(404);
 
+                }
             }
             else
             {
@@ -169,9 +178,61 @@ namespace pandapache.src.Middleware
             }
         }
 
-        private async Task PostHandlerAsync(HttpContext context)
+        private async Task UploadHandlerAsync(HttpContext context)
         {
+            string boundary = GetBoundary(context.Request.Headers["Content-Type"]);
+            string[] parts = context.Request.Body.Split(new[] { boundary }, StringSplitOptions.RemoveEmptyEntries);
 
+            try
+            {
+                foreach (string part in parts)
+                {
+                    if (part.Contains("filename="))
+                    {
+                        string fileName = GetFileName(part);
+                        string fileData = GetFileData(part);
+
+                        // Sauvegarde le fichier sur le serveur
+                        SaveFile(fileName, fileData);
+                    }
+                }
+
+                context.Response = new HttpResponse(200);
+
+            }
+            catch (Exception ex)
+            {
+                context.Response = new HttpResponse(500);
+
+            }
+        }
+
+        private string GetBoundary(string contentType)
+        {
+            string[] parts = contentType.Split(';');
+            string boundary = parts[1].Trim().Substring("boundary=".Length);
+            return "--" + boundary;
+        }
+
+        private string GetFileName(string part)
+        {
+            string[] lines = part.Split('\n');
+            string contentDispositionLine = lines[1].Trim();
+            int fileNameIndex = contentDispositionLine.IndexOf("filename=\"") + "filename=\"".Length;
+            string fileName = contentDispositionLine.Substring(fileNameIndex);
+            return fileName.Trim('"');
+        }
+
+        private string GetFileData(string part)
+        {
+            string[] lines = part.Split('\n');
+            return string.Join("\n", lines.Skip(2).Take(lines.Length - 4));
+        }
+
+        private void SaveFile(string fileName, string fileData)
+        {
+            // Écris les données du fichier dans un fichier sur le serveur
+            File.WriteAllText(fileName, fileData);
         }
     }
 
