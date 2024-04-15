@@ -13,6 +13,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /App
 COPY --from=build-env /App/out .
 RUN mkdir -p /etc/PandApache3/www
+RUN mkdir -p /etc/PandApache3/documents
 RUN mkdir -p /etc/PandApache3/conf
 RUN mkdir -p /var/log/PandApache3
 COPY www /etc/PandApache3/www

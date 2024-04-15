@@ -1,3 +1,4 @@
+using pandapache.src.Configuration;
 using pandapache.src.ConnectionManagement;
 using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.Middleware;
@@ -9,8 +10,11 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        ConnectionManager connectionManager = new ConnectionManager();
         Logger.Initialize();
+        ServerConfiguration.Instance.ReloadConfiguration();
+
+        ConnectionManager connectionManager = new ConnectionManager();
+
         IFileManager fileManager = FileManagerFactory.Instance();
 
         TerminalMiddleware terminalMiddleware = new TerminalMiddleware();

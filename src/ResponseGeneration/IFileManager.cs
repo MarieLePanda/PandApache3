@@ -10,5 +10,7 @@ namespace pandapache.src.ResponseGeneration
 
 
         bool Exists(string path);
+
+        void SaveFile(string path, string fileName, string fileData);
     }
 }

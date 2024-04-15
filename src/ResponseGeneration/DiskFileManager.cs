@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using pandapache.src.LoggingAndMonitoring;
+using System.Text;
 
 namespace pandapache.src.ResponseGeneration
 {
@@ -18,5 +19,16 @@ namespace pandapache.src.ResponseGeneration
         {
             return File.Exists(path);
         }
+
+        public void SaveFile(string path, string fileName, string fileData)
+        {
+            // Écris les données du fichier dans un fichier sur le serveur
+           string guidString = Guid.NewGuid().ToString();
+           string fullPath = $"{path}{guidString}-{fileName}";
+
+            File.WriteAllText(fullPath, fileData);
+            Logger.LogInfo($"File {fileName} saved correclty to {path}");
+        }
+
     }
 }

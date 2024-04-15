@@ -23,5 +23,10 @@ namespace PandApache3.src.ResponseGeneration
         {
             throw new NotImplementedException();
         }
+
+        public void SaveFile(string path, string fileName, string fileData)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

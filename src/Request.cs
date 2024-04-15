@@ -8,31 +8,38 @@ namespace pandapache.src
         public string StartLine { get; }
         public string Verb { get; }
         public string Path {  get; }
-        
+        public string Body { get; }
+
         public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
         public Request(string requestString) 
         {
             RequestString = requestString;
             //Console.WriteLine(RequestString);
-            List<string> requestList = requestString.Split("\r\n").ToList();
-            StartLine = requestList[0];
+
+            StringReader reader = new StringReader(requestString);
+
+            // Lecture de la première ligne (start line)
+            StartLine = reader.ReadLine();
+
+            //List<string> requestList = requestString.Split("\r\n").ToList();
 
             Verb = StartLine.Split(" ")[0];
             Path = StartLine.Split(" ")[1];
 
-            foreach (string line in requestList)
+            string line;
+            while (!string.IsNullOrEmpty(line = reader.ReadLine()))
             {
-                if (line.Contains(":"))
+                int separatorIndex = line.IndexOf(':');
+                if (separatorIndex > 0)
                 {
-                    string key = (string)line.Split(":").GetValue(0);
-                    string value = (string)line.Split(":").GetValue(1);
-
-                    key = key.Remove(key.Length);
-
-                    Headers.Add(key, value.Substring(1));
-
+                    string key = line.Substring(0, separatorIndex).Trim();
+                    string value = line.Substring(separatorIndex + 1).Trim();
+                    Headers.Add(key, value);
                 }
             }
+
+            // Lecture du corps
+            Body = reader.ReadToEnd();
 
         }
     }

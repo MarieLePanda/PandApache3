@@ -2,6 +2,9 @@
 using pandapache.src.ResponseGeneration;
 using pandapache.src.Configuration;
 using System.Text;
+using System.Net.Mime;
+using PandApache3.src.ResponseGeneration;
+using pandapache.src.LoggingAndMonitoring;
 
 namespace pandapache.src.Middleware
 {
@@ -22,6 +25,70 @@ namespace pandapache.src.Middleware
         {
             Console.WriteLine("Router Middleware");
 
+            if (context.Request.Verb.ToUpper().Equals("GET"))
+            {
+                await GetHandlerAsync(context);
+            }
+            else if (context.Request.Verb.ToUpper().Equals("POST"))
+            {
+                if (context.Request.Headers["Content-Type"] != null && context.Request.Headers["Content-Type"].StartsWith("multipart/form-data"))
+                {
+                    // Gérer l'upload de fichiers
+                    UploadHandlerAsync(context);
+                }
+                else
+                {
+                    context.Response = new HttpResponse(404);
+
+                }
+            }
+            else
+            {
+                context.Response = new HttpResponse(404);
+            }
+
+            await _next(context);
+
+        }
+
+        private static string GetFilePath(string path)
+        {
+            if (path == "/")
+                return "index.html";
+            else
+                return path.Substring(1);
+        }
+
+        private static async Task<HttpResponse> EchoHandler(Request request)
+        {
+            string body = request.Path.Replace("/echo/", "");
+            HttpResponse response = new HttpResponse(200)
+            {
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(body))
+            };
+            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
+            return response;
+        }
+
+        private static HttpResponse UserAgentHandler(Request request)
+        {
+            string userAgent = request.Headers["User-Agent"];
+            HttpResponse response = new HttpResponse(200)
+            {
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(userAgent))
+            };
+            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
+            return response;
+        }
+
+        private static void SetContentTypeAndLength(HttpResponse response, string contentType)
+        {
+            response.AddHeader("Content-Type", contentType);
+            response.AddHeader("Content-Length", response.Body.Length.ToString());
+        }
+
+        private async Task GetHandlerAsync(HttpContext context)
+        {
             Request request = context.Request;
             try
             {
@@ -93,7 +160,7 @@ namespace pandapache.src.Middleware
                 }
                 else if (request.Path.StartsWith("/echo"))
                 {
-                   context.Response = await EchoHandler(request);
+                    context.Response = await EchoHandler(request);
                 }
                 else if (request.Path.Equals("/user-agent"))
                 {
@@ -107,49 +174,71 @@ namespace pandapache.src.Middleware
             catch (Exception ex)
             {
                 // Log the exception
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Console.WriteLine($"An error occurred with a GET request: {ex.Message}");
                 // Return a generic error response
                 context.Response = new HttpResponse(500);
             }
-
-            await _next(context);
-
         }
 
-        private static string GetFilePath(string path)
+        private async Task UploadHandlerAsync(HttpContext context)
         {
-            if (path == "/")
-                return "index.html";
+            if (ServerConfiguration.Instance.AllowUpload)
+            {
+                string boundary = GetBoundary(context.Request.Headers["Content-Type"]);
+                string[] parts = context.Request.Body.Split(new[] { boundary }, StringSplitOptions.RemoveEmptyEntries);
+
+                try
+                {
+                    foreach (string part in parts)
+                    {
+                        if (part.Contains("filename="))
+                        {
+                            string fileName = GetFileName(part);
+                            string fileData = GetFileData(part);
+                            FileManagerFactory.Instance().SaveFile(ServerConfiguration.Instance.DocumentDirectory, fileName, fileData);
+                        }
+                    }
+
+                    context.Response = new HttpResponse(200);
+
+                }
+                catch (Exception ex)
+                {
+                    context.Response = new HttpResponse(500);
+                    Logger.LogError($"Error during file saving: {ex.Message}");
+                }
+
+            }
             else
-                return path.Substring(1);
-        }
-
-        private static async Task<HttpResponse> EchoHandler(Request request)
-        {
-            string body = request.Path.Replace("/echo/", "");
-            HttpResponse response = new HttpResponse(200)
             {
-                Body = new MemoryStream(Encoding.UTF8.GetBytes(body))
-            };
-            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
-            return response;
+                context.Response = new HttpResponse(413);
+                Logger.LogWarning("Document upload not allowed");
+            }
         }
 
-        private static HttpResponse UserAgentHandler(Request request)
+        private string GetBoundary(string contentType)
         {
-            string userAgent = request.Headers["User-Agent"];
-            HttpResponse response = new HttpResponse(200)
-            {
-                Body = new MemoryStream(Encoding.UTF8.GetBytes(userAgent))
-            };
-            SetContentTypeAndLength(response, "text/plain; charset=utf-8");
-            return response;
+            string[] parts = contentType.Split(';');
+            string boundary = parts[1].Trim().Substring("boundary=".Length);
+            return "--" + boundary;
         }
 
-        private static void SetContentTypeAndLength(HttpResponse response, string contentType)
+        private string GetFileName(string part)
         {
-            response.AddHeader("Content-Type", contentType);
-            response.AddHeader("Content-Length", response.Body.Length.ToString());
+            string[] lines = part.Split('\n');
+            string contentDispositionLine = lines[1].Trim();
+            int fileNameIndex = contentDispositionLine.IndexOf("filename=\"") + "filename=\"".Length;
+            string fileName = contentDispositionLine.Substring(fileNameIndex);
+            return fileName.Trim('"');
         }
+
+        private string GetFileData(string part)
+        {
+            string[] lines = part.Split('\n');
+            return string.Join("\n", lines.Skip(2).Take(lines.Length - 4));
+        }
+
     }
+
+   
 }

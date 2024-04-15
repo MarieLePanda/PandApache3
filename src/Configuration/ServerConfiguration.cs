@@ -28,8 +28,11 @@ namespace pandapache.src.Configuration
         public string LogLevel { get; set; } = "info";
         //Routing
         public string RootDirectory { get; set; }
+        public string DocumentDirectory {  get; set; }
         public string Persistence { get; set; } = "disk";
 
+        //Security
+        public bool AllowUpload { get; set; } = false;
         //Other
         public string Platform{ get; set; }
         // Ajoutez d'autres propriétés de configuration selon vos besoins
@@ -54,6 +57,7 @@ namespace pandapache.src.Configuration
                                 instance._configurationPath = @"C:\PandApache3\conf\";
                                 instance.LogFolder = @"C:\PandApache3\log\";
                                 instance.RootDirectory = @"C:\PandApache3\www\";
+                                instance.DocumentDirectory = @"C:\PandApache3\documents\";
 
                             }
                             // Vérifie si le système d'exploitation est Linux
@@ -63,12 +67,14 @@ namespace pandapache.src.Configuration
                                 instance._configurationPath = @"/etc/PandApache3/conf/";
                                 instance.LogFolder = @"/var/log/PandApache3/";
                                 instance.RootDirectory = @"/etc/PandApache3/www/";
+                                instance.DocumentDirectory = @"/etc/PandApache3/documents/";
 
                             }
                             else
                             {
                                 throw new Exception("Operating system not supported");
                             }
+
                         }
                     }
                 }
@@ -99,10 +105,10 @@ namespace pandapache.src.Configuration
             ReloadConfiguration();
         }
 
-        private void ReloadConfiguration()
+        public void ReloadConfiguration()
         {
             // Implémentez la logique pour recharger les paramètres de configuration depuis le fichier
-            Logger.LogInfo("New configuration detected");
+            Logger.LogInfo("Load configuration");
             string fullPath = Path.Combine(_configurationPath, "PandApache3.conf");
             if (!File.Exists(fullPath))
             {
@@ -157,6 +163,8 @@ namespace pandapache.src.Configuration
                 ["sizelogfile"] = v => TrySetIntValue(v, val => SizeLogFile = val * 1024, "Size log file invalid"),
                 ["loglevel"] = v => LogLevel = v,
                 ["rootdirectory"] = v => RootDirectory = v,
+                ["documentdirectory"] = v => DocumentDirectory = v,
+                ["allowupload"] = v => TrySetBoolValue(v, val => AllowUpload = val, "Allow upload invalid"),
                 ["persistence"] = v => Persistence = v
             };
 
@@ -182,6 +190,17 @@ namespace pandapache.src.Configuration
             }
         }
 
+        private void TrySetBoolValue(string value, Action<bool> setAction, string warningMessage)
+        {
+            if (bool.TryParse(value, out var parsedValue))
+            {
+                setAction(parsedValue);
+            }
+            else
+            {
+                Logger.LogWarning(warningMessage);
+            }
+        }
     }
 
 }
