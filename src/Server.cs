@@ -13,7 +13,7 @@ class Program
     {
         Logger.Initialize();
         ServerConfiguration.Instance.ReloadConfiguration();
-
+        ServerConfiguration.Instance.Export("exportConfig.conf");
         ConnectionManager connectionManager = new ConnectionManager();
 
         IFileManager fileManager = FileManagerFactory.Instance();

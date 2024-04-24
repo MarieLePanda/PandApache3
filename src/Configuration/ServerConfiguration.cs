@@ -1,5 +1,7 @@
 ﻿using pandapache.src.LoggingAndMonitoring;
+using PandApache3.src.Configuration;
 using System.Net;
+using static System.Collections.Specialized.BitVector32;
 
 namespace pandapache.src.Configuration
 {
@@ -35,6 +37,8 @@ namespace pandapache.src.Configuration
         public bool AllowUpload { get; set; } = false;
         //Other
         public string Platform{ get; set; }
+        public List<DirectoryConfig> Directories { get; set; } = new List<DirectoryConfig>();
+        public string AuthName {  get; set; }
         // Ajoutez d'autres propriétés de configuration selon vos besoins
 
         public static ServerConfiguration Instance
@@ -117,20 +121,49 @@ namespace pandapache.src.Configuration
 
             try
             {
+                bool inSection = false;
+                string currentSection = "";
+                DirectoryConfig currentDirectory = null;
+
                 foreach (var line in File.ReadLines(fullPath))
                 {
                     // Ignorer les lignes vides et les commentaires
                     if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("#"))
                         continue;
 
-                    // Diviser la ligne en clé et valeur en utilisant le premier espace trouvé
-                    var parts = line.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 2)
+                    if (line.Trim().StartsWith("<") && line.Trim().EndsWith(">") && inSection == false)
                     {
-                        var key = parts[0].Trim();
-                        var value = parts[1].Trim();
+                        inSection = true;
+                        currentSection = line.Trim().Substring(1, line.Trim().Length - 2);
+                        if (currentSection.StartsWith("Directory") && currentDirectory == null)
+                        {
+                            currentDirectory = new DirectoryConfig
+                            {
+                                Path = currentSection.Split(' ')[1]
+                            };
+                            Directories.Add(currentDirectory);
+                        }
+                        continue;
+                    }
 
-                        MapConfiguration(key, value);
+                    if (inSection)
+                    {
+                        
+                        if (line.Trim() == "</Directory>")
+                        {
+                            inSection = false;
+                            currentDirectory = null;
+                            currentSection = string.Empty;
+                            continue;
+                        }
+                        if (inSection && currentDirectory != null)
+                        {
+                            getKeyValue(line);
+                        }
+                    }
+                    else
+                    {
+                        getKeyValue(line);
                     }
                 }
                  Logger.LogInfo("Configuration reloaded");
@@ -165,7 +198,13 @@ namespace pandapache.src.Configuration
                 ["rootdirectory"] = v => RootDirectory = v,
                 ["documentdirectory"] = v => DocumentDirectory = v,
                 ["allowupload"] = v => TrySetBoolValue(v, val => AllowUpload = val, "Allow upload invalid"),
-                ["persistence"] = v => Persistence = v
+                ["persistence"] = v => Persistence = v,
+                ["authtype"] = v => Directories.Last().AuthType = v,
+                ["authname"] = v => Directories.Last().AuthName = v,
+                ["authuserfile"] = v => Directories.Last().AuthUserFile = v,
+                ["require"] = v => Directories.Last().Require = v
+
+
             };
 
             if (actionMap.TryGetValue(key.ToLower(), out var action))
@@ -199,6 +238,66 @@ namespace pandapache.src.Configuration
             else
             {
                 Logger.LogWarning(warningMessage);
+            }
+        }
+
+        private void getKeyValue(string line)
+        {
+            var parts = line.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2)
+            {
+                var key = parts[0].Trim();
+                var value = parts[1].Trim();
+
+                MapConfiguration(key, value);
+            }
+        }
+        public void Export(string filePath)
+        {
+            using (var writer = new StreamWriter(filePath))
+            {
+                // General configuration
+                writer.WriteLine($"ServerName {ServerName}");
+                writer.WriteLine($"ServerIP {ServerIP}");
+                writer.WriteLine($"ServerPort {ServerPort}");
+
+                // Performance
+                writer.WriteLine($"MaxAllowedConnections {MaxAllowedConnections}");
+                writer.WriteLine($"MaxRejectedConnections {MaxRejectedConnections}");
+
+                // Logging
+                writer.WriteLine($"LogFolder {LogFolder}");
+                writer.WriteLine($"LogFile {LogFile}");
+                writer.WriteLine($"MaxLogFile {MaxLogFile}");
+                writer.WriteLine($"SizeLogFile {SizeLogFile}");
+                writer.WriteLine($"LogLevel {LogLevel}");
+
+                // Routing
+                writer.WriteLine($"RootDirectory {RootDirectory}");
+                writer.WriteLine($"DocumentDirectory {DocumentDirectory}");
+                writer.WriteLine($"Persistence {Persistence}");
+
+                // Security
+                writer.WriteLine($"AllowUpload {AllowUpload.ToString()}");
+
+                // Other
+                if (!string.IsNullOrEmpty(Platform))
+                    writer.WriteLine($"Platform {Platform}");
+
+                // Export Directory configurations
+                foreach (var dir in Directories)
+                {
+                    writer.WriteLine("<Directory>");
+                    writer.WriteLine($"Path {dir.Path}");
+                    if (!string.IsNullOrEmpty(dir.AuthType))
+                        writer.WriteLine($"AuthType {dir.AuthType}");
+                    if (!string.IsNullOrEmpty(dir.AuthName))
+                        writer.WriteLine($"AuthName {dir.AuthName}");
+                    if (!string.IsNullOrEmpty(dir.AuthUserFile))
+                        writer.WriteLine($"AuthUserFile {dir.AuthUserFile}");
+                    writer.WriteLine($"RequireValidUser {dir.Require}");
+                    writer.WriteLine("</Directory>");
+                }
             }
         }
     }

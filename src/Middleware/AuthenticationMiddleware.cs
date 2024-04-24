@@ -46,11 +46,7 @@ namespace PandApache3.src.Middleware
 
         private bool IsValidUser(string username, string password)
         {
-            // Ici, vous pouvez implémenter la logique de vérification des informations d'identification
-            // Par exemple, vérifier les informations d'identification dans une base de données sécurisée
-            // ou comparer avec des informations d'identification prédéfinies
-            // Pour cet exemple, nous supposons que l'authentification réussit toujours
-            return true;
+            return username.Equals(password);
         }
     }
 }
