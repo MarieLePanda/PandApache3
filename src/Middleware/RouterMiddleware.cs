@@ -5,6 +5,7 @@ using System.Text;
 using System.Net.Mime;
 using PandApache3.src.ResponseGeneration;
 using pandapache.src.LoggingAndMonitoring;
+using PandApache3.src.Configuration;
 
 namespace pandapache.src.Middleware
 {
@@ -92,8 +93,24 @@ namespace pandapache.src.Middleware
             Request request = context.Request;
             try
             {
+                bool AuthNeeded = false;
                 string mainDirectory = ServerConfiguration.Instance.RootDirectory;
                 string filePath = Path.Combine(mainDirectory, GetFilePath(request.Path));
+                foreach (DirectoryConfig directory in ServerConfiguration.Instance.Directories)
+                {
+                    if (filePath.StartsWith(directory.Path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Logger.LogDebug($"FilePath: {filePath} DirectoryPath: {directory.Path}");
+                        Logger.LogDebug($"Authentification requested");
+                        AuthNeeded = true;
+                    }
+                }
+                if(AuthNeeded && context.isAuth == false)
+                {
+                    context.Response = new HttpResponse(413);
+                    Logger.LogWarning($"User not authenticated");
+                    return;
+                }
                 if (_FileManager.Exists(filePath))
                 {
                     string fileExtension = Path.GetExtension(filePath).Substring(1).ToLowerInvariant();
