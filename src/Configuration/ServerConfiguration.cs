@@ -1,5 +1,6 @@
 ﻿using pandapache.src.LoggingAndMonitoring;
 using PandApache3.src.Configuration;
+using PandApache3.src.ResponseGeneration;
 using System.Net;
 using static System.Collections.Specialized.BitVector32;
 
@@ -251,6 +252,21 @@ namespace pandapache.src.Configuration
 
                 MapConfiguration(key, value);
             }
+        }
+
+        public DirectoryConfig? GetDirectory(string fullPath)
+        {
+            foreach (DirectoryConfig directory in Directories)
+            {
+                Console.WriteLine($"FilePath: {fullPath}");
+                Console.WriteLine($"DirectoryPath:{directory.Path}");
+                if (fullPath.StartsWith(directory.Path, StringComparison.OrdinalIgnoreCase))
+                {
+                    return directory;
+                }
+            }
+
+            return null;
         }
         public void Export(string filePath)
         {

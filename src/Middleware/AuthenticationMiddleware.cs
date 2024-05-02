@@ -1,10 +1,12 @@
-﻿using pandapache.src.Middleware;
+﻿using pandapache.src.Configuration;
+using pandapache.src.LoggingAndMonitoring;
+using pandapache.src.Middleware;
 using pandapache.src.RequestHandling;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using PandApache3.src.Configuration;
 using System.Text;
-using System.Threading.Tasks;
+using System.Security.Cryptography;
+using PandApache3.src.ResponseGeneration;
+using pandapache.src;
 
 namespace PandApache3.src.Middleware
 {
@@ -32,9 +34,13 @@ namespace PandApache3.src.Middleware
                     string password = credentialParts[1];
 
                     // Vérifier les informations d'identification
-                    if (IsValidUser(username, password))
+                    string mainDirectory = ServerConfiguration.Instance.RootDirectory;
+
+                    string filePath = Path.Combine(mainDirectory, Utils.GetFilePath(context.Request.Path));
+
+                    DirectoryConfig directoryConfig = ServerConfiguration.Instance.GetDirectory(filePath);
+                    if (IsValidUser(directoryConfig, username, password))
                     {
-                        // Authentification réussie, passer au middleware suivant
                         context.isAuth = true;
                     }
                 }
@@ -44,9 +50,51 @@ namespace PandApache3.src.Middleware
 
         }
 
-        private bool IsValidUser(string username, string password)
+        private bool IsValidUser(DirectoryConfig directoryConfig, string username, string password)
         {
-            return username.Equals(password);
+            string authUserFile = directoryConfig.AuthUserFile;
+            bool exist = FileManagerFactory.Instance().Exists(authUserFile);
+            if (string.IsNullOrEmpty(authUserFile) || exist == false)
+            {
+                Logger.LogError($"Auth User File {authUserFile} don't exist");
+                return false; 
+            }
+
+            Logger.LogInfo($"Reading from the auth user file {authUserFile}");
+            foreach (string line in File.ReadAllLines(authUserFile))
+            {
+                string[] parts = line.Split(':');
+                if (parts.Length == 2)
+                {
+                    if (parts[0].ToLower().Equals(username.ToLower())){
+                        if (parts[1].Equals(HashPassword(password)))
+                            return true;
+                    }
+                    
+                }
+            }
+            return false;
+        }
+
+        private string HashPassword(string password)
+        {
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+
+            // Créer une instance de l'algorithme de hachage (SHA-256 ou SHA-512)
+            using (SHA256Managed sha256 = new SHA256Managed())
+            {
+                // Calculer le hachage du mot de passe
+                byte[] hashedBytes = sha256.ComputeHash(passwordBytes);
+
+                // Convertir le hachage en une chaîne hexadécimale
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in hashedBytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+
+                return builder.ToString();
+            }
         }
     }
 }

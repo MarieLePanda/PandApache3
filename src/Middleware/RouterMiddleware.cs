@@ -52,14 +52,6 @@ namespace pandapache.src.Middleware
 
         }
 
-        private static string GetFilePath(string path)
-        {
-            if (path == "/")
-                return "index.html";
-            else
-                return path.Substring(1);
-        }
-
         private static async Task<HttpResponse> EchoHandler(Request request)
         {
             string body = request.Path.Replace("/echo/", "");
@@ -91,23 +83,24 @@ namespace pandapache.src.Middleware
         private async Task GetHandlerAsync(HttpContext context)
         {
             Request request = context.Request;
+
             try
             {
                 bool AuthNeeded = false;
                 string mainDirectory = ServerConfiguration.Instance.RootDirectory;
-                string filePath = Path.Combine(mainDirectory, GetFilePath(request.Path));
-                foreach (DirectoryConfig directory in ServerConfiguration.Instance.Directories)
+                string filePath = Path.Combine(mainDirectory, Utils.GetFilePath(request.Path));
+ 
+                DirectoryConfig directoryConfig = ServerConfiguration.Instance.GetDirectory(filePath);
+
+                if (directoryConfig != null && directoryConfig.Require.Equals("valid-user"))
                 {
-                    if (filePath.StartsWith(directory.Path, StringComparison.OrdinalIgnoreCase))
-                    {
-                        Logger.LogDebug($"FilePath: {filePath} DirectoryPath: {directory.Path}");
-                        Logger.LogDebug($"Authentification requested");
-                        AuthNeeded = true;
-                    }
+                    Logger.LogDebug($"Authentification requested");
+                    AuthNeeded = true;
                 }
-                if(AuthNeeded && context.isAuth == false)
+                if (AuthNeeded && context.isAuth == false)
                 {
-                    context.Response = new HttpResponse(413);
+                    context.Response = new HttpResponse(401);
+                    context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Authentification\"";
                     Logger.LogWarning($"User not authenticated");
                     return;
                 }

@@ -107,6 +107,10 @@ namespace pandapache.src.ConnectionManagement
                 // Handle client communication here
 
                 Request request = await ConnectionUtils.ParseRequestAsync(client);
+                if (request == null)
+                {
+                    return;
+                }
                 HttpContext context = new HttpContext(request, null);
                
                 await _pipeline(context);
