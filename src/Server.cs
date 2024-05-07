@@ -20,7 +20,10 @@ class Program
 
         TerminalMiddleware terminalMiddleware = new TerminalMiddleware();
         RoutingMiddleware routingMiddleware = new RoutingMiddleware(terminalMiddleware.InvokeAsync, fileManager);
-        AuthenticationMiddleware authenticationMiddleware = new AuthenticationMiddleware(routingMiddleware.InvokeAsync);
+
+        DirectoryMiddleware directoryMiddleware = new DirectoryMiddleware(routingMiddleware.InvokeAsync);
+
+        AuthenticationMiddleware authenticationMiddleware = new AuthenticationMiddleware(directoryMiddleware.InvokeAsync);
         LoggerMiddleware loggerMiddleware = new LoggerMiddleware(authenticationMiddleware.InvokeAsync);
         Func<HttpContext, Task> pipeline = loggerMiddleware.InvokeAsync;
 

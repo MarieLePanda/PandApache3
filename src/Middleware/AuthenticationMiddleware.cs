@@ -52,6 +52,9 @@ namespace PandApache3.src.Middleware
 
         private bool IsValidUser(DirectoryConfig directoryConfig, string username, string password)
         {
+            if(directoryConfig == null) 
+                return false;
+
             string authUserFile = directoryConfig.AuthUserFile;
             bool exist = FileManagerFactory.Instance().Exists(authUserFile);
             if (string.IsNullOrEmpty(authUserFile) || exist == false)

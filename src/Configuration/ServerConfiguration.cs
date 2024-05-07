@@ -122,8 +122,9 @@ namespace pandapache.src.Configuration
 
             try
             {
-                bool inSection = false;
-                string currentSection = "";
+                List<string> allowedMethods = new List<string>();
+
+                List<string> currentSection = new List<string>();
                 DirectoryConfig currentDirectory = null;
 
                 foreach (var line in File.ReadLines(fullPath))
@@ -132,40 +133,58 @@ namespace pandapache.src.Configuration
                     if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("#"))
                         continue;
 
-                    if (line.Trim().StartsWith("<") && line.Trim().EndsWith(">") && inSection == false)
+                    if (line.Trim().StartsWith("<") && line.Trim().EndsWith(">") && line.Trim().StartsWith("</") == false)
                     {
-                        inSection = true;
-                        currentSection = line.Trim().Substring(1, line.Trim().Length - 2);
-                        if (currentSection.StartsWith("Directory") && currentDirectory == null)
+                        string sectionName = line.Trim().Substring(1, line.Trim().Length - 2);
+                        if (sectionName.StartsWith("Directory") && currentDirectory == null)
                         {
                             currentDirectory = new DirectoryConfig
                             {
-                                Path = currentSection.Split(' ')[1]
+                                Path = sectionName.Split(' ')[1]
                             };
                             Directories.Add(currentDirectory);
+                            currentSection.Add("Directory");
                         }
+                        else if (sectionName.StartsWith("LimitVerb"))
+                            {
+                                allowedMethods.Clear(); // Assurez-vous que la liste des méthodes autorisées est vide au début de la section <Limit>
+                                currentSection.Add("LimitVerb");
+                                continue;
+                            }
                         continue;
                     }
 
-                    if (inSection)
+                    if (currentSection.Count != 0)
                     {
-                        
+
                         if (line.Trim() == "</Directory>")
                         {
-                            inSection = false;
+                            
                             currentDirectory = null;
-                            currentSection = string.Empty;
+                            currentSection.Remove("Directory");
                             continue;
                         }
-                        if (inSection && currentDirectory != null)
+                        else if (currentDirectory != null && currentSection.Last().Equals("Directory"))
                         {
                             getKeyValue(line);
                         }
+                        else if (currentDirectory != null && line.Trim() == "</LimitVerb>")
+                        {
+                            currentSection.Remove("LimitVerb");
+                            currentDirectory.AllowedMethods = allowedMethods;
+                            continue;
+                        }
+                        else if(currentDirectory != null && currentSection.Last().Equals("LimitVerb"))
+                        {
+                            allowedMethods.Add(line.Trim());
+                        }
+
                     }
                     else
                     {
                         getKeyValue(line);
                     }
+
                 }
                  Logger.LogInfo("Configuration reloaded");
             }
@@ -312,6 +331,13 @@ namespace pandapache.src.Configuration
                     if (!string.IsNullOrEmpty(dir.AuthUserFile))
                         writer.WriteLine($"AuthUserFile {dir.AuthUserFile}");
                     writer.WriteLine($"RequireValidUser {dir.Require}");
+                    
+                    writer.WriteLine($"<LimitVerb>");
+
+                    foreach(var verb in dir.AllowedMethods)
+                        writer.WriteLine($"{verb}");
+
+                    writer.WriteLine($"<LimitVerb>");
                     writer.WriteLine("</Directory>");
                 }
             }

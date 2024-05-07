@@ -13,6 +13,7 @@ namespace PandApache3.src.Configuration
         public string AuthName { get; set; }
         public string AuthUserFile { get; set; }
         public string Require { get; set; }
+        public List<string> AllowedMethods { get; set; }
     }
 
 }
