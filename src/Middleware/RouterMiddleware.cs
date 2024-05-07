@@ -2,9 +2,9 @@
 using pandapache.src.ResponseGeneration;
 using pandapache.src.Configuration;
 using System.Text;
-using System.Net.Mime;
 using PandApache3.src.ResponseGeneration;
 using pandapache.src.LoggingAndMonitoring;
+using PandApache3.src.Configuration;
 
 namespace pandapache.src.Middleware
 {
@@ -51,14 +51,6 @@ namespace pandapache.src.Middleware
 
         }
 
-        private static string GetFilePath(string path)
-        {
-            if (path == "/")
-                return "index.html";
-            else
-                return path.Substring(1);
-        }
-
         private static async Task<HttpResponse> EchoHandler(Request request)
         {
             string body = request.Path.Replace("/echo/", "");
@@ -90,10 +82,27 @@ namespace pandapache.src.Middleware
         private async Task GetHandlerAsync(HttpContext context)
         {
             Request request = context.Request;
+
             try
             {
+                bool AuthNeeded = false;
                 string mainDirectory = ServerConfiguration.Instance.RootDirectory;
-                string filePath = Path.Combine(mainDirectory, GetFilePath(request.Path));
+                string filePath = Path.Combine(mainDirectory, Utils.GetFilePath(request.Path));
+ 
+                DirectoryConfig directoryConfig = ServerConfiguration.Instance.GetDirectory(filePath);
+
+                if (directoryConfig != null && directoryConfig.Require.Equals("valid-user"))
+                {
+                    Logger.LogDebug($"Authentification requested");
+                    AuthNeeded = true;
+                }
+                if (AuthNeeded && context.isAuth == false)
+                {
+                    context.Response = new HttpResponse(401);
+                    context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Authentification\"";
+                    Logger.LogWarning($"User not authenticated");
+                    return;
+                }
                 if (_FileManager.Exists(filePath))
                 {
                     string fileExtension = Path.GetExtension(filePath).Substring(1).ToLowerInvariant();
@@ -114,7 +123,7 @@ namespace pandapache.src.Middleware
                         "css" => "text/css",
                         "js" => "application/javascript",
                         "json" => "application/json",
-                        "xml" => "text/xml", // Ou "application/xml" selon le contexte d'usage
+                        "xml" => "text/xml",
 
                         // Audio
                         "mp3" => "audio/mpeg",
@@ -173,9 +182,7 @@ namespace pandapache.src.Middleware
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.WriteLine($"An error occurred with a GET request: {ex.Message}");
-                // Return a generic error response
                 context.Response = new HttpResponse(500);
             }
         }

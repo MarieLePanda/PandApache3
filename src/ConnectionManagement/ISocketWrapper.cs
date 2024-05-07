@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 
 namespace pandapache.src.ConnectionManagement
 {
@@ -8,8 +7,6 @@ namespace pandapache.src.ConnectionManagement
     {
         int Receive(byte[] buffer);
         public void Dispose();
-
-        //public Task<int> SendAsync(ArraySegment<byte> buffer, SocketFlags socketFlags);
 
         public Task<int> SendAsync(byte[] buffer, SocketFlags socketFlags);
 

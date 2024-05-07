@@ -15,21 +15,14 @@ namespace pandapache.src.Middleware
             {
                 Logger.LogInfo("Logging Middleware");
 
-                // Log incoming request
                 LogRequest(context.Request);
-
-                // Call the next middleware in the pipeline
                 await _next(context);
-
-                // Log outgoing response
                 LogResponse(context.Response);
-
             }
 
             private void LogRequest(Request request)
             {
                 Logger.LogInfo("Log Request");
-                // Log request details
                 string logMessage = $"[{DateTime.UtcNow}] {request.Verb} {request.Path}";
                 Logger.LogInfo(logMessage);
             }
@@ -37,7 +30,6 @@ namespace pandapache.src.Middleware
             private void LogResponse(HttpResponse response)
             {
                 Logger.LogInfo("Log Response");
-                // Log response details
                 string logMessage = $"[{DateTime.UtcNow}] Response status code: {response.StatusCode}";
                 Logger.LogInfo(logMessage);
             }

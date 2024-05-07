@@ -68,7 +68,6 @@ namespace pandapache.src.ConnectionManagement
                     Guid clientId = Guid.NewGuid();
                     _clients.TryAdd(clientId, client);
 
-                    //IPAddress remoteIPAddress = ((IPEndPoint)client.RemoteEndPoint).Address;
                     Logger.LogInfo($"Client connected");
 
                     // Handle client in a separate thread
@@ -104,9 +103,11 @@ namespace pandapache.src.ConnectionManagement
         {
             try
             {
-                // Handle client communication here
-
                 Request request = await ConnectionUtils.ParseRequestAsync(client);
+                if (request == null)
+                {
+                    return;
+                }
                 HttpContext context = new HttpContext(request, null);
                
                 await _pipeline(context);
@@ -128,7 +129,6 @@ namespace pandapache.src.ConnectionManagement
         {
             try
             {
-                // Handle client communication here
                 HttpResponse errorResponse = await ErrorHandler.HandleErrorAsync(new TooManyConnectionsException());
                 await ConnectionUtils.SendResponseAsync(client, errorResponse);
  

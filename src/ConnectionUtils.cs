@@ -1,4 +1,5 @@
 ﻿using pandapache.src.ConnectionManagement;
+using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
 using System.Net.Sockets;
 using System.Text;
@@ -10,17 +11,19 @@ namespace pandapache.src
     {
 
        
-        public async static Task<Request> ParseRequestAsync(ISocketWrapper client)
+        public async static Task<Request?> ParseRequestAsync(ISocketWrapper client)
         {
 
             byte[] bufferRequest = new byte[1024];
             int bytesRead = client.Receive(bufferRequest);
             string requestString = Encoding.UTF8.GetString(bufferRequest, 0, bytesRead);
+            if (string.IsNullOrEmpty(requestString))
+            {
+                Logger.LogWarning("Empty request received");
+                return null;
+            }
 
             Request request = new Request(requestString);
-
-            Console.WriteLine("Request");
-            //Console.WriteLine(requestString);
             return request;
         }
 

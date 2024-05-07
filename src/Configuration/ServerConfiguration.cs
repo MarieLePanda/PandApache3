@@ -1,4 +1,5 @@
 ﻿using pandapache.src.LoggingAndMonitoring;
+using PandApache3.src.Configuration;
 using System.Net;
 
 namespace pandapache.src.Configuration
@@ -35,6 +36,8 @@ namespace pandapache.src.Configuration
         public bool AllowUpload { get; set; } = false;
         //Other
         public string Platform{ get; set; }
+        public List<DirectoryConfig> Directories { get; set; } = new List<DirectoryConfig>();
+        public string AuthName {  get; set; }
         // Ajoutez d'autres propriétés de configuration selon vos besoins
 
         public static ServerConfiguration Instance
@@ -82,12 +85,10 @@ namespace pandapache.src.Configuration
             }
         }
 
-        // Private constructor to prevent instantiation
         private ServerConfiguration() 
         {
             if (File.Exists(_configurationPath))
             {
-                // Initialisez FileSystemWatcher pour surveiller les changements dans le fichier de configuration
                 fileWatcher = new FileSystemWatcher();
                 fileWatcher.Path = _configurationPath;
                 fileWatcher.Filter = "*.conf";
@@ -100,14 +101,11 @@ namespace pandapache.src.Configuration
 
         private void OnConfigurationFileChanged(object sender, FileSystemEventArgs e)
         {
-            // Traitez l'événement de changement du fichier de configuration
-            // Par exemple, rechargez les paramètres de configuration depuis le fichier
             ReloadConfiguration();
         }
 
         public void ReloadConfiguration()
         {
-            // Implémentez la logique pour recharger les paramètres de configuration depuis le fichier
             Logger.LogInfo("Load configuration");
             string fullPath = Path.Combine(_configurationPath, "PandApache3.conf");
             if (!File.Exists(fullPath))
@@ -117,21 +115,70 @@ namespace pandapache.src.Configuration
 
             try
             {
+                List<string> allowedMethods = new List<string>();
+
+                List<string> currentSection = new List<string>();
+                DirectoryConfig currentDirectory = null;
+
                 foreach (var line in File.ReadLines(fullPath))
                 {
                     // Ignorer les lignes vides et les commentaires
                     if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("#"))
                         continue;
 
-                    // Diviser la ligne en clé et valeur en utilisant le premier espace trouvé
-                    var parts = line.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 2)
+                    if (line.Trim().StartsWith("<") && line.Trim().EndsWith(">") && line.Trim().StartsWith("</") == false)
                     {
-                        var key = parts[0].Trim();
-                        var value = parts[1].Trim();
-
-                        MapConfiguration(key, value);
+                        string sectionName = line.Trim().Substring(1, line.Trim().Length - 2);
+                        if (sectionName.StartsWith("Directory") && currentDirectory == null)
+                        {
+                            currentDirectory = new DirectoryConfig
+                            {
+                                Path = sectionName.Split(' ')[1]
+                            };
+                            Directories.Add(currentDirectory);
+                            currentSection.Add("Directory");
+                        }
+                        else if (sectionName.StartsWith("LimitVerb"))
+                            {
+                                allowedMethods.Clear();
+                                currentSection.Add("LimitVerb");
+                                continue;
+                            }
+                        continue;
                     }
+
+                    if (currentSection.Count != 0)
+                    {
+
+                        if (line.Trim() == "</Directory>")
+                        {
+                            
+                            currentDirectory = null;
+                            currentSection.Remove("Directory");
+                            continue;
+                        }
+                        else if (currentDirectory != null && currentSection.Last().Equals("Directory"))
+                        {
+                            getKeyValue(line);
+                        }
+                        else if (currentDirectory != null && line.Trim() == "</LimitVerb>")
+                        {
+                            currentSection.Remove("LimitVerb");
+                            currentDirectory.AllowedMethods = allowedMethods;
+                            allowedMethods = new List<string>();
+                            continue;
+                        }
+                        else if(currentDirectory != null && currentSection.Last().Equals("LimitVerb"))
+                        {
+                            allowedMethods.Add(line.Trim());
+                        }
+
+                    }
+                    else
+                    {
+                        getKeyValue(line);
+                    }
+
                 }
                  Logger.LogInfo("Configuration reloaded");
             }
@@ -165,7 +212,13 @@ namespace pandapache.src.Configuration
                 ["rootdirectory"] = v => RootDirectory = v,
                 ["documentdirectory"] = v => DocumentDirectory = v,
                 ["allowupload"] = v => TrySetBoolValue(v, val => AllowUpload = val, "Allow upload invalid"),
-                ["persistence"] = v => Persistence = v
+                ["persistence"] = v => Persistence = v,
+                ["authtype"] = v => Directories.Last().AuthType = v,
+                ["authname"] = v => Directories.Last().AuthName = v,
+                ["authuserfile"] = v => Directories.Last().AuthUserFile = v,
+                ["require"] = v => Directories.Last().Require = v
+
+
             };
 
             if (actionMap.TryGetValue(key.ToLower(), out var action))
@@ -199,6 +252,88 @@ namespace pandapache.src.Configuration
             else
             {
                 Logger.LogWarning(warningMessage);
+            }
+        }
+
+        private void getKeyValue(string line)
+        {
+            var parts = line.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2)
+            {
+                var key = parts[0].Trim();
+                var value = parts[1].Trim();
+
+                MapConfiguration(key, value);
+            }
+        }
+
+        public DirectoryConfig? GetDirectory(string fullPath)
+        {
+            foreach (DirectoryConfig directory in Directories)
+            {
+                Console.WriteLine($"FilePath: {fullPath}");
+                Console.WriteLine($"DirectoryPath:{directory.Path}");
+                if (fullPath.StartsWith(directory.Path, StringComparison.OrdinalIgnoreCase))
+                {
+                    return directory;
+                }
+            }
+
+            return null;
+        }
+        public void Export(string filePath)
+        {
+            using (var writer = new StreamWriter(filePath))
+            {
+                // General configuration
+                writer.WriteLine($"ServerName {ServerName}");
+                writer.WriteLine($"ServerIP {ServerIP}");
+                writer.WriteLine($"ServerPort {ServerPort}");
+
+                // Performance
+                writer.WriteLine($"MaxAllowedConnections {MaxAllowedConnections}");
+                writer.WriteLine($"MaxRejectedConnections {MaxRejectedConnections}");
+
+                // Logging
+                writer.WriteLine($"LogFolder {LogFolder}");
+                writer.WriteLine($"LogFile {LogFile}");
+                writer.WriteLine($"MaxLogFile {MaxLogFile}");
+                writer.WriteLine($"SizeLogFile {SizeLogFile}");
+                writer.WriteLine($"LogLevel {LogLevel}");
+
+                // Routing
+                writer.WriteLine($"RootDirectory {RootDirectory}");
+                writer.WriteLine($"DocumentDirectory {DocumentDirectory}");
+                writer.WriteLine($"Persistence {Persistence}");
+
+                // Security
+                writer.WriteLine($"AllowUpload {AllowUpload.ToString()}");
+
+                // Other
+                if (!string.IsNullOrEmpty(Platform))
+                    writer.WriteLine($"Platform {Platform}");
+
+                // Export Directory configurations
+                foreach (var dir in Directories)
+                {
+                    writer.WriteLine("<Directory>");
+                    writer.WriteLine($"Path {dir.Path}");
+                    if (!string.IsNullOrEmpty(dir.AuthType))
+                        writer.WriteLine($"AuthType {dir.AuthType}");
+                    if (!string.IsNullOrEmpty(dir.AuthName))
+                        writer.WriteLine($"AuthName {dir.AuthName}");
+                    if (!string.IsNullOrEmpty(dir.AuthUserFile))
+                        writer.WriteLine($"AuthUserFile {dir.AuthUserFile}");
+                    writer.WriteLine($"RequireValidUser {dir.Require}");
+                    
+                    writer.WriteLine($"<LimitVerb>");
+
+                    foreach(var verb in dir.AllowedMethods)
+                        writer.WriteLine($"{verb}");
+
+                    writer.WriteLine($"<LimitVerb>");
+                    writer.WriteLine("</Directory>");
+                }
             }
         }
     }
