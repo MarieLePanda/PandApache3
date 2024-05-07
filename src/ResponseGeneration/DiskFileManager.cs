@@ -22,7 +22,6 @@ namespace pandapache.src.ResponseGeneration
 
         public void SaveFile(string path, string fileName, string fileData)
         {
-            // Écris les données du fichier dans un fichier sur le serveur
            string guidString = Guid.NewGuid().ToString();
            string fullPath = $"{path}{guidString}-{fileName}";
 

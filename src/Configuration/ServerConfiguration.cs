@@ -1,8 +1,6 @@
 ﻿using pandapache.src.LoggingAndMonitoring;
 using PandApache3.src.Configuration;
-using PandApache3.src.ResponseGeneration;
 using System.Net;
-using static System.Collections.Specialized.BitVector32;
 
 namespace pandapache.src.Configuration
 {
@@ -87,12 +85,10 @@ namespace pandapache.src.Configuration
             }
         }
 
-        // Private constructor to prevent instantiation
         private ServerConfiguration() 
         {
             if (File.Exists(_configurationPath))
             {
-                // Initialisez FileSystemWatcher pour surveiller les changements dans le fichier de configuration
                 fileWatcher = new FileSystemWatcher();
                 fileWatcher.Path = _configurationPath;
                 fileWatcher.Filter = "*.conf";
@@ -105,14 +101,11 @@ namespace pandapache.src.Configuration
 
         private void OnConfigurationFileChanged(object sender, FileSystemEventArgs e)
         {
-            // Traitez l'événement de changement du fichier de configuration
-            // Par exemple, rechargez les paramètres de configuration depuis le fichier
             ReloadConfiguration();
         }
 
         public void ReloadConfiguration()
         {
-            // Implémentez la logique pour recharger les paramètres de configuration depuis le fichier
             Logger.LogInfo("Load configuration");
             string fullPath = Path.Combine(_configurationPath, "PandApache3.conf");
             if (!File.Exists(fullPath))
@@ -147,7 +140,7 @@ namespace pandapache.src.Configuration
                         }
                         else if (sectionName.StartsWith("LimitVerb"))
                             {
-                                allowedMethods.Clear(); // Assurez-vous que la liste des méthodes autorisées est vide au début de la section <Limit>
+                                allowedMethods.Clear();
                                 currentSection.Add("LimitVerb");
                                 continue;
                             }
@@ -172,6 +165,7 @@ namespace pandapache.src.Configuration
                         {
                             currentSection.Remove("LimitVerb");
                             currentDirectory.AllowedMethods = allowedMethods;
+                            allowedMethods = new List<string>();
                             continue;
                         }
                         else if(currentDirectory != null && currentSection.Last().Equals("LimitVerb"))

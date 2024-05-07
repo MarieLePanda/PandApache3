@@ -2,7 +2,6 @@
 using pandapache.src.ResponseGeneration;
 using pandapache.src.Configuration;
 using System.Text;
-using System.Net.Mime;
 using PandApache3.src.ResponseGeneration;
 using pandapache.src.LoggingAndMonitoring;
 using PandApache3.src.Configuration;
@@ -124,7 +123,7 @@ namespace pandapache.src.Middleware
                         "css" => "text/css",
                         "js" => "application/javascript",
                         "json" => "application/json",
-                        "xml" => "text/xml", // Ou "application/xml" selon le contexte d'usage
+                        "xml" => "text/xml",
 
                         // Audio
                         "mp3" => "audio/mpeg",
@@ -183,9 +182,7 @@ namespace pandapache.src.Middleware
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.WriteLine($"An error occurred with a GET request: {ex.Message}");
-                // Return a generic error response
                 context.Response = new HttpResponse(500);
             }
         }

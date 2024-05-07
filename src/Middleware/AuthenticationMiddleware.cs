@@ -6,7 +6,6 @@ using PandApache3.src.Configuration;
 using System.Text;
 using System.Security.Cryptography;
 using PandApache3.src.ResponseGeneration;
-using pandapache.src;
 
 namespace PandApache3.src.Middleware
 {
@@ -33,7 +32,6 @@ namespace PandApache3.src.Middleware
                     string username = credentialParts[0];
                     string password = credentialParts[1];
 
-                    // Vérifier les informations d'identification
                     string mainDirectory = ServerConfiguration.Instance.RootDirectory;
 
                     string filePath = Path.Combine(mainDirectory, Utils.GetFilePath(context.Request.Path));
