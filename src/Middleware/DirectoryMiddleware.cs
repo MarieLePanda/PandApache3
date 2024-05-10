@@ -20,6 +20,7 @@ namespace PandApache3.src.Middleware
         {
             Logger.LogDebug("DirectoryMiddleware");
             string mainDirectory = ServerConfiguration.Instance.RootDirectory;
+            Logger.LogDebug($"Main Directory: {mainDirectory}");
             string filePath = Path.Combine(mainDirectory, Utils.GetFilePath(context.Request.Path));
 
             DirectoryConfig directoryConfig = ServerConfiguration.Instance.GetDirectory(filePath);

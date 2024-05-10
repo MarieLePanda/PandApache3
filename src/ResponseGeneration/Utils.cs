@@ -13,7 +13,8 @@ namespace PandApache3.src.ResponseGeneration
             {
                 if (ServerConfiguration.Instance.Platform.Equals("WIN"))
                     path = path.Substring(1).Replace("/", "\\");
-
+                else
+                    path = path.Substring(1);
                 return path;
             }
         }
