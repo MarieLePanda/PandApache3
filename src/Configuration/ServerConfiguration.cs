@@ -22,6 +22,9 @@ namespace pandapache.src.Configuration
         public int MaxRejectedConnections { get; set; } = 50;
 
         //Logging
+        public bool LogToFile { get; set; } = true;
+        public bool LogToConsole { get; set; } = false;
+
         public string LogFolder { get; set; }
         public string LogFile { get; set; } = "PandApache3.log";
         public int MaxLogFile { get; set; } = 10;
@@ -106,7 +109,6 @@ namespace pandapache.src.Configuration
 
         public void ReloadConfiguration()
         {
-            Logger.LogInfo("Load configuration");
             string fullPath = Path.Combine(_configurationPath, "PandApache3.conf");
             if (!File.Exists(fullPath))
             {
@@ -204,15 +206,17 @@ namespace pandapache.src.Configuration
                 ["serverport"] = v => TrySetIntValue(v, val => ServerPort = val, "Server port invalid"),
                 ["maxallowedconnections"] = v => TrySetIntValue(v, val => MaxAllowedConnections = val, "Maximum allowed connection invalid"),
                 ["maxrejectedconnections"] = v => TrySetIntValue(v, val => MaxRejectedConnections = val, "Maximum rejected connection invalid"),
+                ["logtofile"] = v => TrySetBoolValue(v, val => LogToFile = val, "LogToFile invalid"),
+                ["logtoconsole"] = v => TrySetBoolValue(v, val => LogToConsole = val, "LogToConsole invalid"),
                 ["logfolder"] = v => LogFolder = v,
                 ["logfile"] = v => LogFile = v,
                 ["maxlogfile"] = v => TrySetIntValue(v, val => MaxLogFile = val, "Maximum log file invalid"),
                 ["sizelogfile"] = v => TrySetIntValue(v, val => SizeLogFile = val * 1024, "Size log file invalid"),
-                ["loglevel"] = v => LogLevel = v,
+                ["loglevel"] = v => LogLevel = v.ToLower(),
                 ["rootdirectory"] = v => RootDirectory = v,
                 ["documentdirectory"] = v => DocumentDirectory = v,
                 ["allowupload"] = v => TrySetBoolValue(v, val => AllowUpload = val, "Allow upload invalid"),
-                ["persistence"] = v => Persistence = v,
+                ["persistence"] = v => Persistence = v.ToLower(),
                 ["authtype"] = v => Directories.Last().AuthType = v,
                 ["authname"] = v => Directories.Last().AuthName = v,
                 ["authuserfile"] = v => Directories.Last().AuthUserFile = v,
@@ -271,8 +275,8 @@ namespace pandapache.src.Configuration
         {
             foreach (DirectoryConfig directory in Directories)
             {
-                Console.WriteLine($"FilePath: {fullPath}");
-                Console.WriteLine($"DirectoryPath:{directory.Path}");
+                Logger.LogDebug($"FilePath: {fullPath}");
+                Logger.LogDebug($"DirectoryPath:{directory.Path}");
                 if (fullPath.StartsWith(directory.Path, StringComparison.OrdinalIgnoreCase))
                 {
                     return directory;

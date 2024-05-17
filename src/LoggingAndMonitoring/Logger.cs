@@ -23,55 +23,67 @@ namespace pandapache.src.LoggingAndMonitoring
 
         public static void LogDebug(string message)
         {
-            Log("[DEBUG] " + message);
+            if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[DEBUG] " + message);
         }
 
         public static void LogInfo(string message)
         {
-            Log("[INFO] " + message);
+            if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[INFO] " + message);
         }
 
         public static void LogWarning(string message)
         {
-            Log("[WARNING] " + message);
+            if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[WARNING] " + message);
         }
 
         public static void LogError(string message)
         {
-            Log("[ERROR] " + message);
+            if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[ERROR] " + message);
         }
 
         private static void Log(string message)
         {
             try
             {
-                // Vérifie si le répertoire de logs existe, sinon le crée
-                if (!Directory.Exists(logDirectory))
+                if(ServerConfiguration.Instance.LogToFile == true)
                 {
-                    Directory.CreateDirectory(logDirectory);
-                }
-
-                // Crée le chemin complet pour le fichier log
-                string logFilePath = Path.Combine(logDirectory, logFileName);
-
-                // Vérifie si le fichier de log dépasse la taille maximale
-                if (File.Exists(logFilePath))
-                {
-                    FileInfo fileInfo = new FileInfo(logFilePath);
-                    if (fileInfo.Length > maxSizeFile)
+                    // Vérifie si le répertoire de logs existe, sinon le crée
+                    if (!Directory.Exists(logDirectory))
                     {
-                        Console.WriteLine("Log rotation");
-                        Console.WriteLine($"{fileInfo.Length} > {maxSizeFile}");
-                        RotateLog();
+                        Directory.CreateDirectory(logDirectory);
                     }
+
+                    // Crée le chemin complet pour le fichier log
+                    string logFilePath = Path.Combine(logDirectory, logFileName);
+
+                    // Vérifie si le fichier de log dépasse la taille maximale
+                    if (File.Exists(logFilePath))
+                    {
+                        FileInfo fileInfo = new FileInfo(logFilePath);
+                        if (fileInfo.Length > maxSizeFile)
+                        {
+                            RotateLog();
+                        }
+                    }
+
+                    // Écrit le message dans le fichier log, en ajoutant la date et l'heure actuelles
+                    using (StreamWriter sw = File.AppendText(logFilePath))
+                    {
+                        sw.WriteLine($"{DateTime.Now} - {message}");
+                    }
+
                 }
 
-                // Écrit le message dans le fichier log, en ajoutant la date et l'heure actuelles
-                using (StreamWriter sw = File.AppendText(logFilePath))
+                if(ServerConfiguration.Instance.LogToConsole == true)
                 {
-                    sw.WriteLine($"{DateTime.Now} - {message}");
                     Console.WriteLine($"{DateTime.Now} - {message}");
+
                 }
+
             }
             catch (Exception ex)
             {

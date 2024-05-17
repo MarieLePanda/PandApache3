@@ -1,4 +1,5 @@
-﻿using pandapache.src.RequestHandling;
+﻿using pandapache.src.LoggingAndMonitoring;
+using pandapache.src.RequestHandling;
 
 namespace pandapache.src.Middleware
 {
@@ -6,7 +7,7 @@ namespace pandapache.src.Middleware
     {
         public async Task InvokeAsync(HttpContext context)
         {
-            Console.WriteLine("Last middleware");
+            Logger.LogDebug("Last middleware");
         }
     }
 
