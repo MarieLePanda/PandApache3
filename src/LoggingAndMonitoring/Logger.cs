@@ -23,22 +23,26 @@ namespace pandapache.src.LoggingAndMonitoring
 
         public static void LogDebug(string message)
         {
-            Log("[DEBUG] " + message);
+            if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[DEBUG] " + message);
         }
 
         public static void LogInfo(string message)
         {
-            Log("[INFO] " + message);
+            if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[INFO] " + message);
         }
 
         public static void LogWarning(string message)
         {
-            Log("[WARNING] " + message);
+            if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[WARNING] " + message);
         }
 
         public static void LogError(string message)
         {
-            Log("[ERROR] " + message);
+            if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
+                Log("[ERROR] " + message);
         }
 
         private static void Log(string message)
