@@ -1,4 +1,5 @@
-﻿using pandapache.src.RequestHandling;
+﻿using pandapache.src.LoggingAndMonitoring;
+using pandapache.src.RequestHandling;
 using System.Net;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace pandapache.src.ErrorHandling
     {
         public static async Task<HttpResponse> HandleErrorAsync(Exception exception)
         {
-            Console.WriteLine($"An error occurred: {exception.Message}");
+            Logger.LogError($"An error occurred: {exception.Message}");
 
             // You can implement custom logic to handle different types of exceptions here
             // For simplicity, this example returns a generic error response

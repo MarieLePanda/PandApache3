@@ -14,7 +14,6 @@ namespace pandapache.src
         public Request(string requestString) 
         {
             RequestString = requestString;
-            //Console.WriteLine(RequestString);
 
             StringReader reader = new StringReader(requestString);
 

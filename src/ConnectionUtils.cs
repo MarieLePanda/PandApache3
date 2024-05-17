@@ -32,9 +32,9 @@ namespace pandapache.src
             try
             {
                 byte[] msg = Encoding.UTF8.GetBytes(response.ToString());
-                Console.WriteLine("Reponse");
-                Console.WriteLine(response.ToString());
-                //Console.WriteLine(response.formatReponse());
+                Logger.LogDebug("Reponse");
+                Logger.LogDebug(response.ToString());
+                
                 await client.SendAsync(msg, SocketFlags.None);
 
                 if (response.Body != null)
@@ -50,7 +50,7 @@ namespace pandapache.src
             }
             catch(Exception ex) 
             {
-                Console.WriteLine("Error sending response: " + ex.Message);
+                Logger.LogError("Error sending response: " + ex.Message);
             }
 
 

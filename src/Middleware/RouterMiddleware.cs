@@ -23,7 +23,7 @@ namespace pandapache.src.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            Console.WriteLine("Router Middleware");
+            Logger.LogDebug("Router Middleware");
 
             if (context.Request.Verb.ToUpper().Equals("GET"))
             {
@@ -182,7 +182,7 @@ namespace pandapache.src.Middleware
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred with a GET request: {ex.Message}");
+                Logger.LogError($"An error occurred with a GET request: {ex.Message}");
                 context.Response = new HttpResponse(500);
             }
         }

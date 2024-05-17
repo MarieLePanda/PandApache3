@@ -45,33 +45,41 @@ namespace pandapache.src.LoggingAndMonitoring
         {
             try
             {
-                // Vérifie si le répertoire de logs existe, sinon le crée
-                if (!Directory.Exists(logDirectory))
+                if(ServerConfiguration.Instance.LogToFile == true)
                 {
-                    Directory.CreateDirectory(logDirectory);
-                }
-
-                // Crée le chemin complet pour le fichier log
-                string logFilePath = Path.Combine(logDirectory, logFileName);
-
-                // Vérifie si le fichier de log dépasse la taille maximale
-                if (File.Exists(logFilePath))
-                {
-                    FileInfo fileInfo = new FileInfo(logFilePath);
-                    if (fileInfo.Length > maxSizeFile)
+                    // Vérifie si le répertoire de logs existe, sinon le crée
+                    if (!Directory.Exists(logDirectory))
                     {
-                        Console.WriteLine("Log rotation");
-                        Console.WriteLine($"{fileInfo.Length} > {maxSizeFile}");
-                        RotateLog();
+                        Directory.CreateDirectory(logDirectory);
                     }
+
+                    // Crée le chemin complet pour le fichier log
+                    string logFilePath = Path.Combine(logDirectory, logFileName);
+
+                    // Vérifie si le fichier de log dépasse la taille maximale
+                    if (File.Exists(logFilePath))
+                    {
+                        FileInfo fileInfo = new FileInfo(logFilePath);
+                        if (fileInfo.Length > maxSizeFile)
+                        {
+                            RotateLog();
+                        }
+                    }
+
+                    // Écrit le message dans le fichier log, en ajoutant la date et l'heure actuelles
+                    using (StreamWriter sw = File.AppendText(logFilePath))
+                    {
+                        sw.WriteLine($"{DateTime.Now} - {message}");
+                    }
+
                 }
 
-                // Écrit le message dans le fichier log, en ajoutant la date et l'heure actuelles
-                using (StreamWriter sw = File.AppendText(logFilePath))
+                if(ServerConfiguration.Instance.LogToConsole == true)
                 {
-                    sw.WriteLine($"{DateTime.Now} - {message}");
                     Console.WriteLine($"{DateTime.Now} - {message}");
+
                 }
+
             }
             catch (Exception ex)
             {
