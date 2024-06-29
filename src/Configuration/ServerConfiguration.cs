@@ -37,6 +37,7 @@ namespace pandapache.src.Configuration
 
         //Security
         public bool AllowUpload { get; set; } = false;
+        public DirectoryConfig AdminDirectory {  get; set; }
         //Other
         public string Platform{ get; set; }
         public List<DirectoryConfig> Directories { get; set; } = new List<DirectoryConfig>();
@@ -130,22 +131,43 @@ namespace pandapache.src.Configuration
 
                     if (line.Trim().StartsWith("<") && line.Trim().EndsWith(">") && line.Trim().StartsWith("</") == false)
                     {
+                        Logger.LogDebug($"Starting to read new directive {line.Trim()}");
                         string sectionName = line.Trim().Substring(1, line.Trim().Length - 2);
-                        if (sectionName.StartsWith("Directory") && currentDirectory == null)
+                        Logger.LogInfo($"Reading section {sectionName}");
+
+                        if ((sectionName.StartsWith("Directory") || sectionName.StartsWith("Admin")) && currentDirectory == null)
                         {
+                            string type = string.Empty;
+                            if (sectionName.StartsWith("Admin"))
+                                type = "admin";
+                            else
+                                type = "directory";
+
+                            currentSection.Add(type);
+
                             currentDirectory = new DirectoryConfig
                             {
+                                Type = type,
                                 Path = sectionName.Split(' ')[1]
                             };
                             Directories.Add(currentDirectory);
-                            currentSection.Add("Directory");
+                            Logger.LogDebug($"Directories: {Directories}");
+
+                            if(sectionName.StartsWith("Admin"))
+                                currentSection.Add("Admin");
+                            else
+                                currentSection.Add("Directory");
+
+                            Logger.LogDebug($"Section added: {sectionName}");
                         }
                         else if (sectionName.StartsWith("LimitVerb"))
-                            {
-                                allowedMethods.Clear();
-                                currentSection.Add("LimitVerb");
-                                continue;
-                            }
+                        {
+                            allowedMethods.Clear();
+                            currentSection.Add("LimitVerb");
+                            
+                            Logger.LogDebug($"Section added: {sectionName}");
+                            continue;
+                        }
                         continue;
                     }
 
@@ -157,15 +179,27 @@ namespace pandapache.src.Configuration
                             
                             currentDirectory = null;
                             currentSection.Remove("Directory");
+                            Logger.LogDebug($"Section end: Directory");
+
                             continue;
                         }
-                        else if (currentDirectory != null && currentSection.Last().Equals("Directory"))
+                        else if (line.Trim() == "</Admin>")
+                        {
+                            currentDirectory = null;
+                            currentSection.Remove("Admin");
+                            Logger.LogDebug($"Section end: Admin");
+
+                            continue;
+                        }
+                        else if (currentDirectory != null && currentSection.Last().Equals("Directory") || currentSection.Last().Equals("Admin"))
                         {
                             getKeyValue(line);
                         }
                         else if (currentDirectory != null && line.Trim() == "</LimitVerb>")
                         {
                             currentSection.Remove("LimitVerb");
+                            Logger.LogDebug($"Section end: LimitVerb");
+
                             currentDirectory.AllowedMethods = allowedMethods;
                             allowedMethods = new List<string>();
                             continue;
@@ -173,6 +207,8 @@ namespace pandapache.src.Configuration
                         else if(currentDirectory != null && currentSection.Last().Equals("LimitVerb"))
                         {
                             allowedMethods.Add(line.Trim());
+                            Logger.LogDebug($"Allow method: {line.Trim()}");
+
                         }
 
                     }
@@ -182,6 +218,9 @@ namespace pandapache.src.Configuration
                     }
 
                 }
+
+                LoadAdminDirectory();
+
                  Logger.LogInfo("Configuration reloaded");
             }
             catch (Exception ex)
@@ -190,6 +229,21 @@ namespace pandapache.src.Configuration
             }
 
 
+        }
+
+        private void LoadAdminDirectory()
+        {
+            foreach(DirectoryConfig directory in Directories)
+            {
+                if(directory.Type.Equals("admin"))
+                {
+                    AdminDirectory = directory;
+                    AdminDirectory.Path = "/" + directory.Path.Remove(0, RootDirectory.Length);
+                    Logger.LogInfo($"Admin directory: {AdminDirectory.Path}");
+                    return;
+                }
+
+            }
         }
 
         private void MapConfiguration(string key, string value)
@@ -261,6 +315,8 @@ namespace pandapache.src.Configuration
 
         private void getKeyValue(string line)
         {
+            Logger.LogDebug($"Key Value: {line}");
+
             var parts = line.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 2)
             {

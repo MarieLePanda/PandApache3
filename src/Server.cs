@@ -7,7 +7,7 @@ using pandapache.src.ResponseGeneration;
 using PandApache3.src.Middleware;
 using PandApache3.src.ResponseGeneration;
 
-class Program
+class Server
 {
     static async Task Main(string[] args)
     {
@@ -39,5 +39,11 @@ class Program
             }
 
         }
+    }
+
+    public static void StopServer()
+    {
+        Logger.LogInfo("Server stopped");
+        System.Environment.Exit(0);
     }
 }
