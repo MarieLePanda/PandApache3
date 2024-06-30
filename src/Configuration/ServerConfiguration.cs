@@ -1,6 +1,7 @@
 ﻿using pandapache.src.LoggingAndMonitoring;
 using PandApache3.src.Configuration;
 using System.Net;
+using Newtonsoft.Json;
 
 namespace pandapache.src.Configuration
 {
@@ -14,6 +15,8 @@ namespace pandapache.src.Configuration
 
         //General configuration
         public string ServerName { get; set; } = "PandApache3";
+        
+        [JsonConverter(typeof(IPAddressConverter))]
         public IPAddress ServerIP { get; set; } = System.Net.IPAddress.Any;
         public int ServerPort { get; set; } = 5000;
 
@@ -345,6 +348,13 @@ namespace pandapache.src.Configuration
             }
 
             return null;
+        }
+
+        public string ExportJSON()
+        {
+            string json = JsonConvert.SerializeObject(Instance, Formatting.Indented);
+            return json;
+
         }
         public void Export(string filePath)
         {

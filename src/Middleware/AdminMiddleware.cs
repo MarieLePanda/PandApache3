@@ -2,6 +2,7 @@
 using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
 using System.Text;
+using System.Xml;
 
 namespace pandapache.src.Middleware
 {
@@ -51,6 +52,14 @@ namespace pandapache.src.Middleware
                 };
 
             }
+            else if (request.Path.ToLower().Equals(adminURL + "/config"))
+            {
+
+                response = new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(ServerConfiguration.Instance.ExportJSON()))
+                };
+            }
             else if (request.Path.ToLower().Equals(adminURL + "/stop"))
             {
                 Task.Run(() => Server.StopServer());
@@ -60,6 +69,7 @@ namespace pandapache.src.Middleware
                     Body = new MemoryStream(Encoding.UTF8.GetBytes("Stopping...."))
                 };
             }
+
             else
             {
                 response = new HttpResponse(404)
