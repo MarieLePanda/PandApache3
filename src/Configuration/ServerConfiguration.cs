@@ -110,6 +110,7 @@ namespace pandapache.src.Configuration
 
         public void ReloadConfiguration()
         {
+            Directories.Clear();
             string fullPath = Path.Combine(_configurationPath, "PandApache3.conf");
             if (!File.Exists(fullPath))
             {
@@ -122,7 +123,7 @@ namespace pandapache.src.Configuration
 
                 List<string> currentSection = new List<string>();
                 DirectoryConfig currentDirectory = null;
-
+                Logger.LogDebug("Reading the configuration file line by line");
                 foreach (var line in File.ReadLines(fullPath))
                 {
                     // Ignorer les lignes vides et les commentaires
@@ -145,6 +146,10 @@ namespace pandapache.src.Configuration
 
                             currentSection.Add(type);
 
+                            Logger.LogDebug($"Section name: {sectionName}");
+                            Logger.LogDebug($"sectionName.Split(' ')[0]: {sectionName.Split(' ')[0]}");
+                            Logger.LogDebug($"sectionName.Split(' ')[1]: {sectionName.Split(' ')[1]}");
+
                             currentDirectory = new DirectoryConfig
                             {
                                 Type = type,
@@ -154,7 +159,7 @@ namespace pandapache.src.Configuration
                             Logger.LogDebug($"Directories: {Directories}");
 
                             if(sectionName.StartsWith("Admin"))
-                                currentSection.Add("Admin");
+                                    currentSection.Add("Admin");
                             else
                                 currentSection.Add("Directory");
 
@@ -225,7 +230,7 @@ namespace pandapache.src.Configuration
             }
             catch (Exception ex)
             {
-                throw new Exception("Error during configuration reload", ex);
+                throw new Exception($"Error during configuration reload: {ex.Message}");
             }
 
 

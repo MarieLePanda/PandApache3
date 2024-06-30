@@ -9,12 +9,16 @@ using PandApache3.src.ResponseGeneration;
 
 class Server
 {
+    public static string STATUS {  get; set; }
+    private static ConnectionManager _ConnectionManager = null;
     static async Task Main(string[] args)
     {
+        Server.STATUS = "PandApache3 is starting";
+
         Logger.Initialize();
         ServerConfiguration.Instance.ReloadConfiguration();
         //ServerConfiguration.Instance.Export("exportConfig.conf");
-        ConnectionManager connectionManager = new ConnectionManager();
+        _ConnectionManager = new ConnectionManager();
 
         IFileManager fileManager = FileManagerFactory.Instance();
 
@@ -27,23 +31,54 @@ class Server
         LoggerMiddleware loggerMiddleware = new LoggerMiddleware(authenticationMiddleware.InvokeAsync);
         Func<HttpContext, Task> pipeline = loggerMiddleware.InvokeAsync;
 
-        connectionManager.StartAsync(pipeline);
+        await _ConnectionManager.StartAsync(pipeline);
 
+        Server.STATUS = "PandApache3 is up and running !";
 
         while (true)
         {
-            if (connectionManager.Listener.Pending())
+            try
             {
-                ISocketWrapper client = new SocketWrapper(connectionManager.Listener.AcceptSocket());
-                await connectionManager.AcceptConnectionsAsync(client);
+                if (_ConnectionManager.Listener.Pending())
+                {
+                    ISocketWrapper client = new SocketWrapper(_ConnectionManager.Listener.AcceptSocket());
+                    await _ConnectionManager.AcceptConnectionsAsync(client);
+                }
             }
+            catch (Exception e)
+            {
+                Logger.LogDebug($"Error with Listener pending: {e.Message}");
+            }
+            
 
         }
     }
 
-    public static void StopServer()
+    public static async Task StopServer()
     {
-        Logger.LogInfo("Server stopped");
+        int retry = 5;
+        Server.STATUS = "PandApache3 is stopping";
+        Logger.LogInfo(STATUS);
+        _ConnectionManager.Listener.Stop();
+
+        for (int i = 0; i < retry; retry--)
+        {
+            if (_ConnectionManager._clients.Count > 0)
+            {
+                Thread.Sleep(1000);
+                Logger.LogDebug("There is still active connection...");
+            }
+        }
+
+        if (retry > 0)
+        {
+
+            Logger.LogInfo("Force server to stop ");
+        }
+        {
+            Logger.LogInfo("Stopping server");
+        }
+        
         System.Environment.Exit(0);
     }
 }

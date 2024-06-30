@@ -8,6 +8,7 @@ namespace pandapache.src.Middleware
     public class AdminMiddleware : IMiddleware
     {
         private readonly Func<HttpContext, Task> _next;
+
         public AdminMiddleware(Func<HttpContext, Task> next)
         {
             _next = next;
@@ -37,17 +38,27 @@ namespace pandapache.src.Middleware
             {
                 response = new HttpResponse(200)
                 {
-                    Body = new MemoryStream(Encoding.UTF8.GetBytes("PandApache3 is up and running !"))
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(Server.STATUS))
                 };
 
             }
-            if (request.Path.ToLower().Equals(adminURL + "/stop"))
+            else if (request.Path.ToLower().Equals(adminURL + "/reload"))
             {
+                ServerConfiguration.Instance.ReloadConfiguration();
                 response = new HttpResponse(200)
                 {
-                    Body = new MemoryStream(Encoding.UTF8.GetBytes("Stopping PandApache3..."))
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes("Configuration reloaded"))
                 };
-                Server.StopServer();
+
+            }
+            else if (request.Path.ToLower().Equals(adminURL + "/stop"))
+            {
+                Task.Run(() => Server.StopServer());
+
+                response = new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes("Stopping...."))
+                };
             }
             else
             {

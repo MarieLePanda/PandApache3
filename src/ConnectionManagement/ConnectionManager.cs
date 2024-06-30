@@ -11,7 +11,7 @@ namespace pandapache.src.ConnectionManagement
     {
         public TcpListener Listener { get; set; }
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private readonly ConcurrentDictionary<Guid, ISocketWrapper> _clients = new ConcurrentDictionary<Guid, ISocketWrapper>();
+        public ConcurrentDictionary<Guid, ISocketWrapper> _clients { get; } = new ConcurrentDictionary<Guid, ISocketWrapper>();
         private readonly ConcurrentDictionary<Guid, ISocketWrapper> _clientsRejected = new ConcurrentDictionary<Guid, ISocketWrapper>();
         private Func<HttpContext, Task> _pipeline;
         public async Task StartAsync(Func<HttpContext, Task> pipeline)
