@@ -25,6 +25,10 @@ namespace pandapache.src.Middleware
             {
                 context.Response = getAdmin(request);
             }
+            else if (request.Verb == "POST")
+            {
+                context.Response = postAdmin(request);
+            }
 
             await _next(context);
         }
@@ -62,20 +66,52 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().Equals(adminURL + "/stop"))
             {
-                Task.Run(() => Server.StopServer());
+                Task.Run(() => Server.StoppingServerAsync(false));
 
                 response = new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes("Stopping...."))
                 };
             }
+            else if (request.Path.ToLower().Equals(adminURL + "/restart"))
+            {
+                Task.Run(() => Server.StoppingServerAsync(true));
 
+                response = new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes("Restarting...."))
+                };
+            }
             else
             {
                 response = new HttpResponse(404)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes("Oh oh, you should not have seen that"))
                 };
+            }
+            return response;
+        }
+
+        private HttpResponse postAdmin(Request request)
+        {
+            HttpResponse response = new HttpResponse(200);
+
+            string adminURL = ServerConfiguration.Instance.AdminDirectory.Path;
+
+            if (request.Path.ToLower().StartsWith(adminURL + "/config"))
+            {
+                Logger.LogDebug($"QueryString: {request.QueryString}");
+
+                if (request.queryParameters.Count > 0)
+                {
+                    foreach (var item in request.queryParameters)
+                    {
+                        Logger.LogDebug($"key and value: <{item.Key}/{item.Value}>");
+                        ServerConfiguration.Instance.MapConfiguration(item.Key, item.Value);
+                    }
+
+                    ServerConfiguration.Instance.Export(Path.Combine(ServerConfiguration.Instance._configurationPath,"PandApache3.conf"));
+                }
             }
             return response;
         }

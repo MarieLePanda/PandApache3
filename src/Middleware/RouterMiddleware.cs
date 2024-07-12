@@ -33,8 +33,8 @@ namespace pandapache.src.Middleware
             {
                 if (context.Request.Headers["Content-Type"] != null && context.Request.Headers["Content-Type"].StartsWith("multipart/form-data"))
                 {
-                    // Gérer l'upload de fichiers
-                    UploadHandlerAsync(context);
+                   await UploadHandlerAsync(context);
+
                 }
                 else
                 {
@@ -110,13 +110,6 @@ namespace pandapache.src.Middleware
                 else if (request.Path.Equals("/user-agent"))
                 {
                     context.Response = UserAgentHandler(request);
-                }
-                else if (request.Path.StartsWith(ServerConfiguration.Instance.AdminDirectory.Path))
-                {
-                    Func<HttpContext, Task> oldPipeline = _next;
-                    AdminMiddleware adminMiddleware = new AdminMiddleware(oldPipeline);
-                    _next = adminMiddleware.InvokeAsync;
-
                 }
                 else if (_FileManager.Exists(filePath))
                 {

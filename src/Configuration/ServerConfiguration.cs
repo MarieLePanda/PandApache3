@@ -2,23 +2,26 @@
 using PandApache3.src.Configuration;
 using System.Net;
 using Newtonsoft.Json;
+using System.IO;
+using PandApache3.src.ResponseGeneration;
 
 namespace pandapache.src.Configuration
 {
     public class ServerConfiguration : IServerConfiguration
     {
         private FileSystemWatcher fileWatcher;
-        private string _configurationPath;
         private static ServerConfiguration instance;
         private static readonly object lockObject = new object();
 
+        public string _configurationPath { get; set; }
 
         //General configuration
         public string ServerName { get; set; } = "PandApache3";
         
         [JsonConverter(typeof(IPAddressConverter))]
         public IPAddress ServerIP { get; set; } = System.Net.IPAddress.Any;
-        public int ServerPort { get; set; } = 5000;
+        public int ServerPort { get; set; } = 8080;
+        public int AdminPort { get; set; } = 4040;
 
         //Performance
         public int MaxAllowedConnections { get; set; } = 100;
@@ -44,7 +47,7 @@ namespace pandapache.src.Configuration
         //Other
         public string Platform{ get; set; }
         public List<DirectoryConfig> Directories { get; set; } = new List<DirectoryConfig>();
-        public string AuthName {  get; set; }
+        // public string AuthName {  get; set; }
         // Ajoutez d'autres propriétés de configuration selon vos besoins
 
         public static ServerConfiguration Instance
@@ -168,11 +171,12 @@ namespace pandapache.src.Configuration
 
                             Logger.LogDebug($"Section added: {sectionName}");
                         }
-                        else if (sectionName.StartsWith("LimitVerb"))
+                        else if (sectionName.StartsWith("LimitVerb") && currentDirectory.AllowedMethods == null)
                         {
-                            allowedMethods.Clear();
+                            //allowedMethods.Clear();
                             currentSection.Add("LimitVerb");
                             
+                            currentDirectory.AllowedMethods = new List<string>();
                             Logger.LogDebug($"Section added: {sectionName}");
                             continue;
                         }
@@ -208,13 +212,14 @@ namespace pandapache.src.Configuration
                             currentSection.Remove("LimitVerb");
                             Logger.LogDebug($"Section end: LimitVerb");
 
-                            currentDirectory.AllowedMethods = allowedMethods;
-                            allowedMethods = new List<string>();
+                            //currentDirectory.AllowedMethods = allowedMethods;
+                            //allowedMethods = new List<string>();
+                            //currentDirectory.AllowedMethods = new List<string>();
                             continue;
                         }
                         else if(currentDirectory != null && currentSection.Last().Equals("LimitVerb"))
                         {
-                            allowedMethods.Add(line.Trim());
+                            currentDirectory.AllowedMethods.Add(line.Trim());
                             Logger.LogDebug($"Allow method: {line.Trim()}");
 
                         }
@@ -254,7 +259,7 @@ namespace pandapache.src.Configuration
             }
         }
 
-        private void MapConfiguration(string key, string value)
+        public void MapConfiguration(string key, string value)
         {
             var actionMap = new Dictionary<string, Action<string>>
             {
@@ -266,6 +271,7 @@ namespace pandapache.src.Configuration
                         Logger.LogWarning("Server IP invalid");
                 },
                 ["serverport"] = v => TrySetIntValue(v, val => ServerPort = val, "Server port invalid"),
+                ["adminport"] = v => TrySetIntValue(v, val => ServerPort = val, "Admin port invalid"),
                 ["maxallowedconnections"] = v => TrySetIntValue(v, val => MaxAllowedConnections = val, "Maximum allowed connection invalid"),
                 ["maxrejectedconnections"] = v => TrySetIntValue(v, val => MaxRejectedConnections = val, "Maximum rejected connection invalid"),
                 ["logtofile"] = v => TrySetBoolValue(v, val => LogToFile = val, "LogToFile invalid"),
@@ -337,6 +343,13 @@ namespace pandapache.src.Configuration
 
         public DirectoryConfig? GetDirectory(string fullPath)
         {
+            if (fullPath.StartsWith(Path.Combine(RootDirectory, Utils.GetFilePath(AdminDirectory.Path))))
+            {
+                Logger.LogDebug($"FilePath: {fullPath}");
+                Logger.LogDebug($"AdminDirectoryPath:{AdminDirectory.Path}");
+                return AdminDirectory;
+
+            }
             foreach (DirectoryConfig directory in Directories)
             {
                 Logger.LogDebug($"FilePath: {fullPath}");
@@ -361,15 +374,23 @@ namespace pandapache.src.Configuration
             using (var writer = new StreamWriter(filePath))
             {
                 // General configuration
+                writer.WriteLine("#General configuration");
+
                 writer.WriteLine($"ServerName {ServerName}");
                 writer.WriteLine($"ServerIP {ServerIP}");
                 writer.WriteLine($"ServerPort {ServerPort}");
 
                 // Performance
+                writer.WriteLine("#Performance");
+
                 writer.WriteLine($"MaxAllowedConnections {MaxAllowedConnections}");
                 writer.WriteLine($"MaxRejectedConnections {MaxRejectedConnections}");
 
                 // Logging
+                writer.WriteLine("#Logging");
+
+                writer.WriteLine($"LogToFile {LogToFile}");
+                writer.WriteLine($"LogToConsole {LogToConsole}");
                 writer.WriteLine($"LogFolder {LogFolder}");
                 writer.WriteLine($"LogFile {LogFile}");
                 writer.WriteLine($"MaxLogFile {MaxLogFile}");
@@ -377,37 +398,66 @@ namespace pandapache.src.Configuration
                 writer.WriteLine($"LogLevel {LogLevel}");
 
                 // Routing
+                writer.WriteLine("#Routing");
+
                 writer.WriteLine($"RootDirectory {RootDirectory}");
                 writer.WriteLine($"DocumentDirectory {DocumentDirectory}");
                 writer.WriteLine($"Persistence {Persistence}");
 
                 // Security
+                writer.WriteLine("#Security");
+
                 writer.WriteLine($"AllowUpload {AllowUpload.ToString()}");
 
+                foreach (var dir in Directories)
+                {
+                    if (dir.Type.Equals("admin"))
+                    {
+                        writer.WriteLine($"<Admin {ServerConfiguration.Instance.RootDirectory + ServerConfiguration.Instance.AdminDirectory.Path.Substring(1)}>");
+                        if (!string.IsNullOrEmpty(dir.AuthType))
+                            writer.WriteLine($"\tAuthType {dir.AuthType}");
+                        if (!string.IsNullOrEmpty(dir.AuthName))
+                            writer.WriteLine($"\tAuthName {dir.AuthName}");
+                        if (!string.IsNullOrEmpty(dir.AuthUserFile))
+                            writer.WriteLine($"\tAuthUserFile {dir.AuthUserFile}");
+                        writer.WriteLine($"\tRequire {dir.Require}");
+
+                        writer.WriteLine($"\t<LimitVerb>");
+
+                        foreach (var verb in dir.AllowedMethods)
+                            writer.WriteLine($"\t\t{verb}");
+
+                        writer.WriteLine($"\t<LimitVerb>");
+                        writer.WriteLine("</Admin>");
+
+                    }
+                }
                 // Other
-                if (!string.IsNullOrEmpty(Platform))
-                    writer.WriteLine($"Platform {Platform}");
+                writer.WriteLine("#Other");
 
                 // Export Directory configurations
                 foreach (var dir in Directories)
                 {
-                    writer.WriteLine("<Directory>");
-                    writer.WriteLine($"Path {dir.Path}");
-                    if (!string.IsNullOrEmpty(dir.AuthType))
-                        writer.WriteLine($"AuthType {dir.AuthType}");
-                    if (!string.IsNullOrEmpty(dir.AuthName))
-                        writer.WriteLine($"AuthName {dir.AuthName}");
-                    if (!string.IsNullOrEmpty(dir.AuthUserFile))
-                        writer.WriteLine($"AuthUserFile {dir.AuthUserFile}");
-                    writer.WriteLine($"RequireValidUser {dir.Require}");
-                    
-                    writer.WriteLine($"<LimitVerb>");
+                    if(dir.Type.Equals("directory"))
+                    {
+                        writer.WriteLine($"<Directory {dir.Path}>");
+                        if (!string.IsNullOrEmpty(dir.AuthType))
+                            writer.WriteLine($"\tAuthType {dir.AuthType}");
+                        if (!string.IsNullOrEmpty(dir.AuthName))
+                            writer.WriteLine($"\tAuthName {dir.AuthName}");
+                        if (!string.IsNullOrEmpty(dir.AuthUserFile))
+                            writer.WriteLine($"\tAuthUserFile {dir.AuthUserFile}");
+                        writer.WriteLine($"\tRequire {dir.Require}");
 
-                    foreach(var verb in dir.AllowedMethods)
-                        writer.WriteLine($"{verb}");
+                        writer.WriteLine($"\t<LimitVerb>");
 
-                    writer.WriteLine($"<LimitVerb>");
-                    writer.WriteLine("</Directory>");
+                        foreach (var verb in dir.AllowedMethods)
+                            writer.WriteLine($"\t\t{verb}");
+
+                        writer.WriteLine($"\t<LimitVerb>");
+                        writer.WriteLine("</Directory>");
+
+                    }
                 }
             }
         }

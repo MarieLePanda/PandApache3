@@ -1,4 +1,6 @@
 ﻿
+using pandapache.src.LoggingAndMonitoring;
+
 namespace pandapache.src
 {
     [Obsolete]
@@ -9,7 +11,8 @@ namespace pandapache.src
         public string Verb { get; }
         public string Path {  get; }
         public string Body { get; }
-
+        public string QueryString { get; }
+        public Dictionary<string, string> queryParameters { get; }
         public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
         public Request(string requestString) 
         {
@@ -40,6 +43,41 @@ namespace pandapache.src
             // Lecture du corps
             Body = reader.ReadToEnd();
 
+            string[] pathParts = Path.Split('?');
+
+            if (pathParts.Length > 1)
+            {
+                QueryString = pathParts[1];
+            }
+
+            queryParameters = GetQueryParameters();
+
+        }
+
+        private Dictionary<string, string> GetQueryParameters()
+        {
+            Logger.LogInfo("Reading query string parameter");
+            var parameters = new Dictionary<string, string>();
+
+            if (!string.IsNullOrEmpty(QueryString))
+            {
+                var keyValuePairs = QueryString.Split('&');
+
+                foreach (var pair in keyValuePairs)
+                {
+                    var keyValue = pair.Split('=');
+                    Logger.LogDebug($"KeyValue: {keyValue}");
+
+                    if (keyValue.Length == 2)
+                    {
+                        var key = Uri.UnescapeDataString(keyValue[0]);
+                        var value = Uri.UnescapeDataString(keyValue[1]);
+                        parameters[key] = value;
+                    }
+                }
+            }
+
+            return parameters;
         }
     }
 }

@@ -20,6 +20,7 @@ namespace PandApache3.src.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
+            Logger.LogDebug("Authentication Middleware");
             // Récupérer l'en-tête d'authentification
             if (context.Request.Headers.ContainsKey("Authorization"))
             {
