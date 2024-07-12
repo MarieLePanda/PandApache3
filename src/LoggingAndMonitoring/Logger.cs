@@ -49,7 +49,10 @@ namespace pandapache.src.LoggingAndMonitoring
         {
             try
             {
-                if(ServerConfiguration.Instance.LogToFile == true)
+                Thread currentThread = Thread.CurrentThread;
+
+
+                if (ServerConfiguration.Instance.LogToFile == true)
                 {
                     // Vérifie si le répertoire de logs existe, sinon le crée
                     if (!Directory.Exists(logDirectory))
@@ -73,14 +76,14 @@ namespace pandapache.src.LoggingAndMonitoring
                     // Écrit le message dans le fichier log, en ajoutant la date et l'heure actuelles
                     using (StreamWriter sw = File.AppendText(logFilePath))
                     {
-                        sw.WriteLine($"{DateTime.Now} - {message}");
+                        sw.WriteLine($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - {message}");
                     }
 
                 }
 
                 if(ServerConfiguration.Instance.LogToConsole == true)
                 {
-                    Console.WriteLine($"{DateTime.Now} - {message}");
+                    Console.WriteLine($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - {message}");
 
                 }
 

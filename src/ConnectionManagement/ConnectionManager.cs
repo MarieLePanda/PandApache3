@@ -10,18 +10,37 @@ namespace pandapache.src.ConnectionManagement
     public class ConnectionManager
     {
         public TcpListener Listener { get; set; }
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private readonly ConcurrentDictionary<Guid, ISocketWrapper> _clients = new ConcurrentDictionary<Guid, ISocketWrapper>();
+        public bool IsAdmin { get; set; }
+        public CancellationTokenSource _cancellationTokenSource { get; } = new CancellationTokenSource();
+        public ConcurrentDictionary<Guid, ISocketWrapper> _clients { get; } = new ConcurrentDictionary<Guid, ISocketWrapper>();
         private readonly ConcurrentDictionary<Guid, ISocketWrapper> _clientsRejected = new ConcurrentDictionary<Guid, ISocketWrapper>();
         private Func<HttpContext, Task> _pipeline;
+
+        public ConnectionManager(bool isAdmin) 
+        {
+            IsAdmin = isAdmin;
+        }
         public async Task StartAsync(Func<HttpContext, Task> pipeline)
         {
             try
             {
-                Listener = new TcpListener(ServerConfiguration.Instance.ServerIP, ServerConfiguration.Instance.ServerPort);
+                //To refactor in the futur to avoid the code duplication
+                if (IsAdmin)
+                {
+                    Listener = new TcpListener(ServerConfiguration.Instance.ServerIP, ServerConfiguration.Instance.AdminPort);
+                    Logger.LogInfo($"Admin server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.AdminPort}");
+
+                }
+                else
+                {
+                    Listener = new TcpListener(ServerConfiguration.Instance.ServerIP, ServerConfiguration.Instance.ServerPort);
+                    Logger.LogInfo($"Web server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.ServerPort}");
+                }
+
                 Listener.Start();
                 _pipeline = pipeline;
-                Logger.LogInfo($"Server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.ServerPort}");
+
+
             }
             catch (SocketException ex)
             {
@@ -49,12 +68,11 @@ namespace pandapache.src.ConnectionManagement
                 {
                     Listener.Stop();
                 }
-
-                Logger.LogInfo("Server stopped.");
+                Logger.LogInfo("TCP listener stopped.");
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Error stopping the server: {ex}");
+                Logger.LogError($"Error stopping the TCP listener: {ex}");
             }
         }
 
@@ -69,7 +87,7 @@ namespace pandapache.src.ConnectionManagement
                     _clients.TryAdd(clientId, client);
 
                     Logger.LogInfo($"Client connected");
-
+                    
                     // Handle client in a separate thread
                     Task.Run(() => HandleClientAsync(client, clientId));
 
@@ -103,6 +121,9 @@ namespace pandapache.src.ConnectionManagement
         {
             try
             {
+                Thread currentThread = Thread.CurrentThread;
+                Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) HandleClientAsync function");
+
                 Request request = await ConnectionUtils.ParseRequestAsync(client);
                 if (request == null)
                 {

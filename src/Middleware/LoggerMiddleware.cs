@@ -14,7 +14,6 @@ namespace pandapache.src.Middleware
             public async Task InvokeAsync(HttpContext context)
             {
                 Logger.LogInfo("Logging Middleware");
-
                 LogRequest(context.Request);
                 await _next(context);
                 LogResponse(context.Response);

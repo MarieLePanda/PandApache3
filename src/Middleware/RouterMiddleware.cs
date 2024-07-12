@@ -9,10 +9,10 @@ using PandApache3.src.Configuration;
 namespace pandapache.src.Middleware
 {
 
-    public class RoutingMiddleware
+    public class RoutingMiddleware : IMiddleware
     {
 
-        private readonly Func<HttpContext, Task> _next;
+        private Func<HttpContext, Task> _next;
         private readonly IFileManager _FileManager;
 
         public RoutingMiddleware(Func<HttpContext, Task> next, IFileManager fileManager)
@@ -33,8 +33,8 @@ namespace pandapache.src.Middleware
             {
                 if (context.Request.Headers["Content-Type"] != null && context.Request.Headers["Content-Type"].StartsWith("multipart/form-data"))
                 {
-                    // Gérer l'upload de fichiers
-                    UploadHandlerAsync(context);
+                   await UploadHandlerAsync(context);
+
                 }
                 else
                 {
@@ -103,7 +103,15 @@ namespace pandapache.src.Middleware
                     Logger.LogWarning($"User not authenticated");
                     return;
                 }
-                if (_FileManager.Exists(filePath))
+                if (request.Path.StartsWith("/echo"))
+                {
+                    context.Response = await EchoHandler(request);
+                }
+                else if (request.Path.Equals("/user-agent"))
+                {
+                    context.Response = UserAgentHandler(request);
+                }
+                else if (_FileManager.Exists(filePath))
                 {
                     string fileExtension = Path.GetExtension(filePath).Substring(1).ToLowerInvariant();
                     string mimeType = fileExtension switch
@@ -166,14 +174,6 @@ namespace pandapache.src.Middleware
                         context.Response = httpResponse;
 
                     }
-                }
-                else if (request.Path.StartsWith("/echo"))
-                {
-                    context.Response = await EchoHandler(request);
-                }
-                else if (request.Path.Equals("/user-agent"))
-                {
-                    context.Response = UserAgentHandler(request);
                 }
                 else
                 {
