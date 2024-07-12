@@ -271,7 +271,7 @@ namespace pandapache.src.Configuration
                         Logger.LogWarning("Server IP invalid");
                 },
                 ["serverport"] = v => TrySetIntValue(v, val => ServerPort = val, "Server port invalid"),
-                ["adminport"] = v => TrySetIntValue(v, val => ServerPort = val, "Admin port invalid"),
+                ["adminport"] = v => TrySetIntValue(v, val => AdminPort = val, "Admin port invalid"),
                 ["maxallowedconnections"] = v => TrySetIntValue(v, val => MaxAllowedConnections = val, "Maximum allowed connection invalid"),
                 ["maxrejectedconnections"] = v => TrySetIntValue(v, val => MaxRejectedConnections = val, "Maximum rejected connection invalid"),
                 ["logtofile"] = v => TrySetBoolValue(v, val => LogToFile = val, "LogToFile invalid"),
