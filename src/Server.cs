@@ -62,6 +62,8 @@ class Server
             ";
             Logger.LogInfo(banner);
 
+            Logger.flushLog();
+
             await StartServerAsync();
             await RunAllServerAsync();
 

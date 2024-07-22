@@ -1,4 +1,7 @@
 ﻿using pandapache.src.Configuration;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Text;
 
 namespace pandapache.src.LoggingAndMonitoring
 {
@@ -10,6 +13,9 @@ namespace pandapache.src.LoggingAndMonitoring
         private static int maxLogFiles;
         private static int maxSizeFile;
         private static string logLevel;
+        private static int maxBufferSize = 100;
+        private static ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
+        public static bool hold = true;
 
 
         public static void Initialize()
@@ -24,34 +30,68 @@ namespace pandapache.src.LoggingAndMonitoring
         public static void LogDebug(string message)
         {
             if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
-                Log("[DEBUG] " + message);
+            {
+                Thread currentThread = Thread.CurrentThread;
+                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [DEBUG] - {message}");
+            }
         }
 
         public static void LogInfo(string message)
         {
             if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
-                Log("[INFO] " + message);
+            {
+                Thread currentThread = Thread.CurrentThread;
+                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [INFO] - {message}");
+            }
         }
 
         public static void LogWarning(string message)
         {
             if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
-                Log("[WARNING] " + message);
+            {
+                Thread currentThread = Thread.CurrentThread;
+                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [WARNING] - {message}");
+            }
         }
 
         public static void LogError(string message)
         {
             if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
-                Log("[ERROR] " + message);
+            {
+                Thread currentThread = Thread.CurrentThread;
+                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [ERROR] - {message}");
+            }
         }
 
+        private static void preLog(string message)
+        {
+           logs.Enqueue(message);
+
+            if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog)
+                flushLog();
+        }
+
+        public static void flushLog()
+        {
+            string message = string.Empty;
+            StringBuilder sb = new StringBuilder();
+            while (logs.Count > 0)
+            {
+                if (logs.TryDequeue(out message))
+                {
+                    sb.AppendLine(message);
+                }
+            }
+
+            if (sb.Length > 0)
+            {
+                Log(sb.ToString());
+            }
+        }
         private static void Log(string message)
         {
             try
             {
-                Thread currentThread = Thread.CurrentThread;
-
-
                 if (ServerConfiguration.Instance.LogToFile == true)
                 {
                     // Vérifie si le répertoire de logs existe, sinon le crée
@@ -76,14 +116,14 @@ namespace pandapache.src.LoggingAndMonitoring
                     // Écrit le message dans le fichier log, en ajoutant la date et l'heure actuelles
                     using (StreamWriter sw = File.AppendText(logFilePath))
                     {
-                        sw.WriteLine($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - {message}");
+                        sw.Write($"{message}");
                     }
 
                 }
 
                 if(ServerConfiguration.Instance.LogToConsole == true)
                 {
-                    Console.WriteLine($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - {message}");
+                    Console.Write($"{message}");
 
                 }
 
@@ -133,7 +173,6 @@ namespace pandapache.src.LoggingAndMonitoring
             }
             catch (Exception ex)
             {
-                LogError($"Error deleting old log files: {ex.Message}");
                 LogError($"Error deleting old log files: {ex.Message}");
             }
         }

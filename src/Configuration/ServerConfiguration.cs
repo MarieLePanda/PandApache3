@@ -36,6 +36,7 @@ namespace pandapache.src.Configuration
         public int MaxLogFile { get; set; } = 10;
         public int SizeLogFile { get; set; } = 1024;
         public string LogLevel { get; set; } = "info";
+        public int MaxBufferLog { get; set; } = 0;
         //Routing
         public string RootDirectory { get; set; }
         public string DocumentDirectory {  get; set; }
@@ -89,6 +90,8 @@ namespace pandapache.src.Configuration
                                 throw new Exception("Operating system not supported");
                             }
 
+                            instance.ReloadConfiguration();
+
                         }
                     }
                 }
@@ -98,6 +101,7 @@ namespace pandapache.src.Configuration
 
         private ServerConfiguration() 
         {
+            //To fix
             if (File.Exists(_configurationPath))
             {
                 fileWatcher = new FileSystemWatcher();
@@ -282,6 +286,7 @@ namespace pandapache.src.Configuration
                 ["logfile"] = v => LogFile = v,
                 ["maxlogfile"] = v => TrySetIntValue(v, val => MaxLogFile = val, "Maximum log file invalid"),
                 ["sizelogfile"] = v => TrySetIntValue(v, val => SizeLogFile = val * 1024, "Size log file invalid"),
+                ["maxbufferlog"] = v => TrySetIntValue(v, val => MaxBufferLog = val, "Maximum buffer size invalid"),
                 ["loglevel"] = v => LogLevel = v.ToLower(),
                 ["rootdirectory"] = v => RootDirectory = v,
                 ["documentdirectory"] = v => DocumentDirectory = v,

@@ -130,7 +130,7 @@ namespace pandapache.src.Middleware
                 }
                 else
                 {
-                    response = new HttpResponse(401)
+                    response = new HttpResponse(403)
                     {
                         Body = new MemoryStream(Encoding.UTF8.GetBytes("Admin script execution not allowed on the server"))
                     };
@@ -159,7 +159,7 @@ namespace pandapache.src.Middleware
                     if (ServerConfiguration.Instance.AdminScript)
                         return RequestParser.UploadHandler(context.Request, true);
                     else
-                        return new HttpResponse(413);
+                        return new HttpResponse(403);
                 }
             }
 
