@@ -43,6 +43,7 @@ namespace pandapache.src.Configuration
 
         //Security
         public bool AllowUpload { get; set; } = false;
+        public bool AdminScript { get; set; } = false;
         public DirectoryConfig AdminDirectory {  get; set; }
         //Other
         public string Platform{ get; set; }
@@ -251,8 +252,9 @@ namespace pandapache.src.Configuration
                 if(directory.Type.Equals("admin"))
                 {
                     AdminDirectory = directory;
-                    AdminDirectory.Path = "/" + directory.Path.Remove(0, RootDirectory.Length);
-                    Logger.LogInfo($"Admin directory: {AdminDirectory.Path}");
+                    AdminDirectory.Path = directory.Path;
+                    AdminDirectory.URL = "/" + Path.GetFileName(Path.GetDirectoryName(directory.Path));
+                     Logger.LogInfo($"Admin directory: {AdminDirectory.Path}");
                     return;
                 }
 
@@ -284,6 +286,7 @@ namespace pandapache.src.Configuration
                 ["rootdirectory"] = v => RootDirectory = v,
                 ["documentdirectory"] = v => DocumentDirectory = v,
                 ["allowupload"] = v => TrySetBoolValue(v, val => AllowUpload = val, "Allow upload invalid"),
+                ["adminscript"] = v => TrySetBoolValue(v, val => AdminScript = val, "Admin script invalid"),
                 ["persistence"] = v => Persistence = v.ToLower(),
                 ["authtype"] = v => Directories.Last().AuthType = v,
                 ["authname"] = v => Directories.Last().AuthName = v,
@@ -343,7 +346,7 @@ namespace pandapache.src.Configuration
 
         public DirectoryConfig? GetDirectory(string fullPath)
         {
-            if (fullPath.StartsWith(Path.Combine(RootDirectory, Utils.GetFilePath(AdminDirectory.Path))))
+            if (fullPath.StartsWith(AdminDirectory.URL))
             {
                 Logger.LogDebug($"FilePath: {fullPath}");
                 Logger.LogDebug($"AdminDirectoryPath:{AdminDirectory.Path}");
@@ -413,7 +416,7 @@ namespace pandapache.src.Configuration
                 {
                     if (dir.Type.Equals("admin"))
                     {
-                        writer.WriteLine($"<Admin {ServerConfiguration.Instance.RootDirectory + ServerConfiguration.Instance.AdminDirectory.Path.Substring(1)}>");
+                        writer.WriteLine($"<Admin {ServerConfiguration.Instance.AdminDirectory.Path.Substring(1)}>");
                         if (!string.IsNullOrEmpty(dir.AuthType))
                             writer.WriteLine($"\tAuthType {dir.AuthType}");
                         if (!string.IsNullOrEmpty(dir.AuthName))

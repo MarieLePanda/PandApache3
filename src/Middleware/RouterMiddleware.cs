@@ -33,8 +33,7 @@ namespace pandapache.src.Middleware
             {
                 if (context.Request.Headers["Content-Type"] != null && context.Request.Headers["Content-Type"].StartsWith("multipart/form-data"))
                 {
-                   await UploadHandlerAsync(context);
-
+                   context.Response = RequestParser.UploadHandler(context.Request);
                 }
                 else
                 {
@@ -187,63 +186,6 @@ namespace pandapache.src.Middleware
             }
         }
 
-        private async Task UploadHandlerAsync(HttpContext context)
-        {
-            if (ServerConfiguration.Instance.AllowUpload)
-            {
-                string boundary = GetBoundary(context.Request.Headers["Content-Type"]);
-                string[] parts = context.Request.Body.Split(new[] { boundary }, StringSplitOptions.RemoveEmptyEntries);
-
-                try
-                {
-                    foreach (string part in parts)
-                    {
-                        if (part.Contains("filename="))
-                        {
-                            string fileName = GetFileName(part);
-                            string fileData = GetFileData(part);
-                            FileManagerFactory.Instance().SaveFile(ServerConfiguration.Instance.DocumentDirectory, fileName, fileData);
-                        }
-                    }
-
-                    context.Response = new HttpResponse(200);
-
-                }
-                catch (Exception ex)
-                {
-                    context.Response = new HttpResponse(500);
-                    Logger.LogError($"Error during file saving: {ex.Message}");
-                }
-
-            }
-            else
-            {
-                context.Response = new HttpResponse(413);
-                Logger.LogWarning("Document upload not allowed");
-            }
-        }
-
-        private string GetBoundary(string contentType)
-        {
-            string[] parts = contentType.Split(';');
-            string boundary = parts[1].Trim().Substring("boundary=".Length);
-            return "--" + boundary;
-        }
-
-        private string GetFileName(string part)
-        {
-            string[] lines = part.Split('\n');
-            string contentDispositionLine = lines[1].Trim();
-            int fileNameIndex = contentDispositionLine.IndexOf("filename=\"") + "filename=\"".Length;
-            string fileName = contentDispositionLine.Substring(fileNameIndex);
-            return fileName.Trim('"');
-        }
-
-        private string GetFileData(string part)
-        {
-            string[] lines = part.Split('\n');
-            return string.Join("\n", lines.Skip(2).Take(lines.Length - 4));
-        }
 
     }
 

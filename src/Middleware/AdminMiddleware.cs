@@ -1,6 +1,10 @@
 ﻿using pandapache.src.Configuration;
 using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
+using PandApache3.src.ResponseGeneration;
+using System.Diagnostics;
+using System.Runtime.InteropServices.JavaScript;
+using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 
@@ -27,7 +31,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Verb == "POST")
             {
-                context.Response = postAdmin(request);
+                context.Response = postAdmin(context);
             }
 
             await _next(context);
@@ -37,7 +41,7 @@ namespace pandapache.src.Middleware
         {
             Logger.LogInfo($"Request for admin: {request.Path}");
             HttpResponse response;
-            string adminURL = ServerConfiguration.Instance.AdminDirectory.Path;
+            string adminURL = ServerConfiguration.Instance.AdminDirectory.URL;
             Logger.LogDebug($"URL for adminsitration: {adminURL}");
             if (request.Path.ToLower().Equals(adminURL + "/status"))
             {
@@ -56,13 +60,28 @@ namespace pandapache.src.Middleware
                 };
 
             }
-            else if (request.Path.ToLower().Equals(adminURL + "/config"))
+            else if (request.Path.ToLower().StartsWith(adminURL + "/config"))
             {
-
-                response = new HttpResponse(200)
+                if (request.queryParameters.Count > 0)
                 {
-                    Body = new MemoryStream(Encoding.UTF8.GetBytes(ServerConfiguration.Instance.ExportJSON()))
-                };
+                    foreach (var item in request.queryParameters)
+                    {
+                        Logger.LogDebug($"key and value: <{item.Key}/{item.Value}>");
+                        ServerConfiguration.Instance.MapConfiguration(item.Key, item.Value);
+                    }
+
+                    ServerConfiguration.Instance.Export(Path.Combine(ServerConfiguration.Instance._configurationPath, "PandApache3.conf"));
+                    
+                    response = new HttpResponse(200);
+                }
+                else
+                {
+                    response = new HttpResponse(200)
+                    {
+                        Body = new MemoryStream(Encoding.UTF8.GetBytes(ServerConfiguration.Instance.ExportJSON()))
+                    };
+
+                }
             }
             else if (request.Path.ToLower().Equals(adminURL + "/stop"))
             {
@@ -82,6 +101,42 @@ namespace pandapache.src.Middleware
                     Body = new MemoryStream(Encoding.UTF8.GetBytes("Restarting...."))
                 };
             }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/script"))
+            {
+
+                if (ServerConfiguration.Instance.AdminScript)
+                {
+                    string scriptsDirectory = ServerConfiguration.Instance.AdminDirectory.Path;
+
+                    if (request.queryParameters.Count > 0)
+                    {
+
+                        response = RunScript(scriptsDirectory, request.queryParameters);
+                    }
+                    else
+                    {
+                        string bodyScript = "Here the list of script on the PandApache3 server:\n";
+                        foreach (string script in Directory.GetFiles(scriptsDirectory))
+                        {
+                            FileInfo fileInfo = new FileInfo(script);
+                            bodyScript += $"\t- {fileInfo.Name}\n";
+                        }
+
+                        response = new HttpResponse(200)
+                        {
+                            Body = new MemoryStream(Encoding.UTF8.GetBytes(bodyScript))
+                        };
+                    }
+                }
+                else
+                {
+                    response = new HttpResponse(401)
+                    {
+                        Body = new MemoryStream(Encoding.UTF8.GetBytes("Admin script execution not allowed on the server"))
+                    };
+                }
+
+            }
             else
             {
                 response = new HttpResponse(404)
@@ -92,29 +147,90 @@ namespace pandapache.src.Middleware
             return response;
         }
 
-        private HttpResponse postAdmin(Request request)
+        private HttpResponse postAdmin(HttpContext context)
         {
-            HttpResponse response = new HttpResponse(200);
-
-            string adminURL = ServerConfiguration.Instance.AdminDirectory.Path;
-
-            if (request.Path.ToLower().StartsWith(adminURL + "/config"))
+            if (context.Request.Headers["Content-Type"] != null && context.Request.Headers["Content-Type"].StartsWith("multipart/form-data"))
             {
-                Logger.LogDebug($"QueryString: {request.QueryString}");
+                string adminURL = ServerConfiguration.Instance.AdminDirectory.URL;
+                string scriptsDirectory = ServerConfiguration.Instance.AdminDirectory.Path;
 
-                if (request.queryParameters.Count > 0)
+                if (context.Request.Path.ToLower().StartsWith(adminURL + "/script"))
                 {
-                    foreach (var item in request.queryParameters)
-                    {
-                        Logger.LogDebug($"key and value: <{item.Key}/{item.Value}>");
-                        ServerConfiguration.Instance.MapConfiguration(item.Key, item.Value);
-                    }
-
-                    ServerConfiguration.Instance.Export(Path.Combine(ServerConfiguration.Instance._configurationPath,"PandApache3.conf"));
+                    if (ServerConfiguration.Instance.AdminScript)
+                        return RequestParser.UploadHandler(context.Request, true);
+                    else
+                        return new HttpResponse(413);
                 }
             }
+
+            return new HttpResponse(404);
+
+        }
+
+        private HttpResponse RunScript(string scriptDirectory, Dictionary<string, string> queryParameters)
+        {
+            //Execute script
+            HttpResponse response = null;
+            string terminal = string.Empty;
+            if (ServerConfiguration.Instance.Platform.Equals("WIN"))
+                terminal = "powershell.exe";
+            else
+                terminal = "/bin/bash";
+
+            string argumentList = $"{Path.Combine(scriptDirectory, queryParameters["name"])}";
+            foreach (var item in queryParameters)
+            {
+                if (item.Key != "name")
+                {
+                    argumentList += $" {item.Value}";
+                }
+            }
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = terminal,
+                Arguments = argumentList,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+            };
+
+            try
+            {
+
+                Logger.LogInfo($"Execute script with {terminal}");
+                Logger.LogInfo($"Script information {argumentList}");
+                using (var process = new Process { StartInfo = processInfo })
+                {
+                    process.Start();
+                    process.WaitForExit();
+                    string standardOutput = process.StandardOutput.ReadToEnd();
+                    string standardError = process.StandardError.ReadToEnd();
+
+                    ScriptResult scriptResult = new ScriptResult
+                    {
+                        ExitCode = process.ExitCode,
+                        StandardOutput = standardOutput,
+                        ErrorOutput = standardError
+                    };
+
+
+                    response = new HttpResponse(200)
+                    {
+                        Body = new MemoryStream(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(scriptResult)))
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error with script execution {ex.Message}");
+                response = new HttpResponse(500);
+            }
+
             return response;
         }
+
+
     }
 
 }

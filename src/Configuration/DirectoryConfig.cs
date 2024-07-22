@@ -5,6 +5,7 @@ namespace PandApache3.src.Configuration
     {
         public string Type { get; set; }
         public string Path { get; set; }
+        public string URL { get; set; }
         public string AuthType { get; set; }
         public string AuthName { get; set; }
         public string AuthUserFile { get; set; }
