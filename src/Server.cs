@@ -60,11 +60,11 @@ class Server
             ██████╔╝██╗██████╔╝                       
             ╚═════╝ ╚═╝╚═════╝                        
             ";
-            Logger.LogInfo(banner);
-
-            Logger.flushLog();
 
             await StartServerAsync();
+            Logger.LogInfo(banner);
+            Logger.GetReady();
+            Logger.flushLog();
             await RunAllServerAsync();
 
            
@@ -72,6 +72,7 @@ class Server
         }
 
         Logger.LogInfo("La revedere !");
+        Logger.flushLog();
     }
 
     private static async Task RunAllServerAsync()
@@ -135,9 +136,7 @@ class Server
                 tokenSource.Cancel();
             }
         }
-        Logger.Initialize();
-        ServerConfiguration.Instance.ReloadConfiguration();
-
+        
         _ConnectionManagerAdmin = new ConnectionManager(true);
         _ConnectionManagerWeb = new ConnectionManager(false);
 

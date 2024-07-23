@@ -15,10 +15,19 @@ namespace pandapache.src.LoggingAndMonitoring
         private static string logLevel;
         private static int maxBufferSize = 100;
         private static ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
+        private static List<string> _logsHistory = new List<string>();
+        public static List<string> LogsHistory { get { return new List<string>(_logsHistory); } set { _logsHistory = LogsHistory; } }
+        private static int logCount = 0;
+        
         public static bool hold = true;
 
+        //[0] first log
+        //[1] second log
+        //[2] third log
+        //[3] fourth log
 
-        public static void Initialize()
+        //[4] => [0]
+        public static void GetReady()
         {
             Logger.logDirectory = ServerConfiguration.Instance.LogFolder;
             Logger.logFileName = ServerConfiguration.Instance.LogFile;
@@ -65,10 +74,26 @@ namespace pandapache.src.LoggingAndMonitoring
 
         private static void preLog(string message)
         {
-           logs.Enqueue(message);
-
+            logs.Enqueue(message);
+            historyLog(message);
             if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog)
                 flushLog();
+        }
+
+        private static void historyLog(string message)
+        {
+            if (logCount >= ServerConfiguration.Instance.MaxHistoryLog)
+                logCount = 0;
+
+            if(_logsHistory.Count < ServerConfiguration.Instance.MaxHistoryLog)
+            {
+                _logsHistory.Add(message);
+            }
+            else
+            {
+                _logsHistory[logCount] = message;
+            }
+            logCount++;
         }
 
         public static void flushLog()

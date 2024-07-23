@@ -1,6 +1,7 @@
 ﻿using pandapache.src.Configuration;
 using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
+using PandApache3.src.LoggingAndMonitoring;
 using PandApache3.src.ResponseGeneration;
 using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
@@ -27,7 +28,19 @@ namespace pandapache.src.Middleware
 
             if (request.Verb == "GET")
             {
-                context.Response = getAdmin(request);
+                string adminURL = ServerConfiguration.Instance.AdminDirectory.URL;
+                if (request.Path.ToLower().StartsWith(adminURL + "/monitor"))
+                {
+                    context.Response = getMonitor(request);
+                }
+                else if (request.Path.ToLower().StartsWith(adminURL))
+                    context.Response = getAdmin(request);
+                
+                else
+                {
+                    context.Response = new HttpResponse(404);
+                }
+
             }
             else if (request.Verb == "POST")
             {
@@ -101,6 +114,20 @@ namespace pandapache.src.Middleware
                     Body = new MemoryStream(Encoding.UTF8.GetBytes("Restarting...."))
                 };
             }
+            else if (request.Path.ToLower().Equals(adminURL + "/logs"))
+            {
+                StringBuilder logs = new StringBuilder();
+
+                foreach(var log in Logger.LogsHistory)
+                {
+                    logs.Append(log + "\n");
+                }
+                response = new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(logs.ToString()))
+                };
+            }
+
             else if (request.Path.ToLower().StartsWith(adminURL + "/script"))
             {
 
@@ -167,6 +194,32 @@ namespace pandapache.src.Middleware
 
         }
 
+        private HttpResponse getMonitor(Request request)
+        {
+            string adminURL = ServerConfiguration.Instance.AdminDirectory.URL;
+
+            if (request.Path.ToLower().StartsWith(adminURL + "/monitor/cpu"))
+            {
+                Monitoring.GetCPU();
+                return new HttpResponse(200);
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/drive"))
+            {
+                Monitoring.GetDriveInfo();
+                return new HttpResponse(200);
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/memory"))
+            {
+                Monitoring.getProcessMemory();
+                return new HttpResponse(200);
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/gc"))
+            {
+                Monitoring.GetProcessGC();
+                return new HttpResponse(200);
+            }
+            return new HttpResponse(404);
+        }
         private HttpResponse RunScript(string scriptDirectory, Dictionary<string, string> queryParameters)
         {
             //Execute script

@@ -35,8 +35,10 @@ namespace pandapache.src.Configuration
         public string LogFile { get; set; } = "PandApache3.log";
         public int MaxLogFile { get; set; } = 10;
         public int SizeLogFile { get; set; } = 1024;
-        public string LogLevel { get; set; } = "info";
         public int MaxBufferLog { get; set; } = 0;
+        public int MaxHistoryLog { get; set; } = 10;
+
+        public string LogLevel { get; set; } = "info";
         //Routing
         public string RootDirectory { get; set; }
         public string DocumentDirectory {  get; set; }
@@ -287,6 +289,7 @@ namespace pandapache.src.Configuration
                 ["maxlogfile"] = v => TrySetIntValue(v, val => MaxLogFile = val, "Maximum log file invalid"),
                 ["sizelogfile"] = v => TrySetIntValue(v, val => SizeLogFile = val * 1024, "Size log file invalid"),
                 ["maxbufferlog"] = v => TrySetIntValue(v, val => MaxBufferLog = val, "Maximum buffer size invalid"),
+                ["maxhistorylog"] = v => TrySetIntValue(v, val => MaxHistoryLog = val, "Maximum hisotry log size invalid"),
                 ["loglevel"] = v => LogLevel = v.ToLower(),
                 ["rootdirectory"] = v => RootDirectory = v,
                 ["documentdirectory"] = v => DocumentDirectory = v,
