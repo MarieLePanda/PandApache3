@@ -5,6 +5,7 @@ using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.Middleware;
 using pandapache.src.RequestHandling;
 using pandapache.src.ResponseGeneration;
+using PandApache3.src.LoggingAndMonitoring;
 using PandApache3.src.Middleware;
 using PandApache3.src.ResponseGeneration;
 using System;
@@ -15,6 +16,11 @@ using System.Text;
 class Server
 {
     public static string STATUS {  get; set; }
+    public static int PROCESSID { get ; set; } 
+    public static string PROCESSNAME { get; set; }
+
+    public static Telemetry TELEMETRY { get; set; }
+
     private static ConnectionManager _ConnectionManagerWeb = null;
     private static ConnectionManager _ConnectionManagerAdmin = null;
     private static CancellationTokenSource _cancellationTokenSourceServer = new CancellationTokenSource();
@@ -61,10 +67,17 @@ class Server
             ╚═════╝ ╚═╝╚═════╝                        
             ";
 
+            
             await StartServerAsync();
             Logger.LogInfo(banner);
             Logger.GetReady();
             Logger.flushLog();
+            TELEMETRY = new Telemetry();
+            PROCESSID = Process.GetCurrentProcess().Id;
+            PROCESSNAME = Process.GetCurrentProcess().ProcessName;
+            Logger.LogInfo($"Process id:{PROCESSID}");
+            Logger.LogInfo($"Process Name:{PROCESSNAME}");
+
             await RunAllServerAsync();
 
            
@@ -121,9 +134,7 @@ class Server
     }
     public static async Task StartServerAsync(List<CancellationTokenSource> cancellationTokens=null)
     {
-        Thread currentThread = Thread.CurrentThread;
-        Console.WriteLine($"Thread (Thread ID: {currentThread.ManagedThreadId}) run the function StartServerAsync");
-
+ 
         Server.STATUS = "PandApache3 is starting";
         Logger.LogInfo($"{Server.STATUS}");
 

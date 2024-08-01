@@ -1,4 +1,5 @@
 ﻿using pandapache.src.Configuration;
+using PandApache3.src.LoggingAndMonitoring;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
@@ -15,18 +16,23 @@ namespace pandapache.src.LoggingAndMonitoring
         private static string logLevel;
         private static int maxBufferSize = 100;
         private static ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
-        private static List<string> _logsHistory = new List<string>();
-        public static List<string> LogsHistory { get { return new List<string>(_logsHistory); } set { _logsHistory = LogsHistory; } }
-        private static int logCount = 0;
-        
+        private static SortedList<DateTime, LogEntry> _logsHistory = new SortedList<DateTime, LogEntry>();
+        private static readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private static int logCount = 0;        
         public static bool hold = true;
 
-        //[0] first log
-        //[1] second log
-        //[2] third log
-        //[3] fourth log
-
-        //[4] => [0]
+        public static IEnumerable<LogEntry> GetLogHistory()
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                return new List<LogEntry>(_logsHistory.Values);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }
         public static void GetReady()
         {
             Logger.logDirectory = ServerConfiguration.Instance.LogFolder;
@@ -39,61 +45,75 @@ namespace pandapache.src.LoggingAndMonitoring
         public static void LogDebug(string message)
         {
             if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
-            {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [DEBUG] - {message}");
-            }
+                preLog("DEBUG",message);
         }
 
         public static void LogInfo(string message)
         {
             if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
-            {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [INFO] - {message}");
-            }
+                preLog("INFO", message);
         }
 
         public static void LogWarning(string message)
         {
             if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
-            {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [WARNING] - {message}");
-            }
+                preLog("WARNING", message);
+
         }
 
         public static void LogError(string message)
         {
             if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
-            {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [ERROR] - {message}");
-            }
+                preLog("ERROR", message);
+
         }
 
-        private static void preLog(string message)
+        private static void preLog(string level, string message)
         {
-            logs.Enqueue(message);
-            historyLog(message);
-            if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog)
+            DateTime timestamp = DateTime.Now;
+            Thread currentThread = Thread.CurrentThread;
+            string log = $"{timestamp} - Thread ID: {currentThread.ManagedThreadId} - [{level}] - {message}";
+
+            logs.Enqueue(log);
+            LogEntry logEntry = new LogEntry(timestamp, log);
+            
+            historyLog(logEntry);
+
+            if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog && Server.STATUS.Equals("PandApache3 is up and running!"))
                 flushLog();
         }
 
-        private static void historyLog(string message)
+        private static void historyLog(LogEntry logEntry)
         {
-            if (logCount >= ServerConfiguration.Instance.MaxHistoryLog)
-                logCount = 0;
+            if(ServerConfiguration.Instance.MaxHistoryLog <= 0)
+                return;
 
-            if(_logsHistory.Count < ServerConfiguration.Instance.MaxHistoryLog)
+            _lock.EnterWriteLock();
+            try
             {
-                _logsHistory.Add(message);
+
+                if (logCount >= ServerConfiguration.Instance.MaxHistoryLog)
+                    logCount = 0;
+
+                if (_logsHistory.Count < ServerConfiguration.Instance.MaxHistoryLog)
+                {
+                    logCount++;
+                }
+                else
+                {
+                    _logsHistory.RemoveAt(0);
+                }
+
+                _logsHistory.Add(logEntry.Timestamp, logEntry);
             }
-            else
+            catch (Exception ex)
             {
-                _logsHistory[logCount] = message;
+                Console.Error.WriteLine($"Error logging message: {ex.Message}");
             }
-            logCount++;
+            finally 
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         public static void flushLog()

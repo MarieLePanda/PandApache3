@@ -4,6 +4,7 @@ using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
+using System.Text;
 
 namespace pandapache.src.ConnectionManagement
 {
@@ -135,15 +136,24 @@ namespace pandapache.src.ConnectionManagement
                 
                 await ConnectionUtils.SendResponseAsync(client, context.Response);
                 _clients.TryRemove(clientId, out client);
-                client.Dispose();
-
-                Logger.LogInfo($"Client closed");
             }
             catch (Exception ex)
             {
+                HttpResponse errorResponse = new HttpResponse(500)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(ex.Message))
+                };
+                await ConnectionUtils.SendResponseAsync(client, errorResponse);
                 Logger.LogError($"Error handling client: {ex.Message}");
 
             }
+            finally
+            {
+                client.Dispose();
+                Logger.LogInfo(" client Closed");
+
+            }
+
         }
 
         private async Task HandleClientRejectAsync(ISocketWrapper client, Guid clientId)
@@ -154,13 +164,23 @@ namespace pandapache.src.ConnectionManagement
                 await ConnectionUtils.SendResponseAsync(client, errorResponse);
  
                 _clientsRejected.TryRemove(clientId, out client);
-                client.Dispose();
 
-                Logger.LogInfo("Closed");
             }
             catch (Exception ex)
             {
+                HttpResponse errorResponse = new HttpResponse(500)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(ex.Message))
+                };
+                await ConnectionUtils.SendResponseAsync(client, errorResponse);
+
                 Logger.LogError($"Error handling client: {ex.Message}");
+            }
+            finally
+            {
+                client.Dispose();
+                Logger.LogInfo(" client Closed");
+
             }
         }
     }

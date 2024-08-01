@@ -118,9 +118,9 @@ namespace pandapache.src.Middleware
             {
                 StringBuilder logs = new StringBuilder();
 
-                foreach(var log in Logger.LogsHistory)
+                foreach(var logEntry in Logger.GetLogHistory())
                 {
-                    logs.Append(log + "\n");
+                    logs.Append(logEntry.Message + "\n");
                 }
                 response = new HttpResponse(200)
                 {
@@ -200,25 +200,107 @@ namespace pandapache.src.Middleware
 
             if (request.Path.ToLower().StartsWith(adminURL + "/monitor/cpu"))
             {
-                Monitoring.GetCPU();
-                return new HttpResponse(200);
+                var cpuUsage = Server.TELEMETRY.GetCpuUsagePercentage();
+                return new HttpResponse(200)
+                { 
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(cpuUsage.ToString())) 
+                };
             }
-            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/drive"))
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/availablememory"))
             {
-                Monitoring.GetDriveInfo();
-                return new HttpResponse(200);
+                var availableMemory = Server.TELEMETRY.GetAvailableMemoryMB();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(availableMemory.ToString()))
+                };
             }
-            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/memory"))
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/privatememory"))
             {
-                Monitoring.getProcessMemory();
-                return new HttpResponse(200);
+                var privateMemory = Server.TELEMETRY.GetPrivateMemoryUsageMB();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(privateMemory.ToString()))
+                };
             }
-            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/gc"))
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/virtualmemory"))
             {
-                Monitoring.GetProcessGC();
-                return new HttpResponse(200);
+                var virtualMemory = Server.TELEMETRY.GetVirtualMemoryUsageMB();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(virtualMemory.ToString()))
+                };
             }
-            return new HttpResponse(404);
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/cputime"))
+            {
+                var cpuTime = Server.TELEMETRY.GetProcessCpuTime();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(cpuTime.ToString()))
+                };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/diskread"))
+            {
+                var diskRead = Server.TELEMETRY.GetDiskReadBytesPerSecond();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(diskRead.ToString()))
+                };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/diskwrite"))
+            {
+                var diskWrite = Server.TELEMETRY.GetDiskWriteBytesPerSecond();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(diskWrite.ToString()))
+                };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/diskqueue"))
+            {
+                var diskQueue = Server.TELEMETRY.GetDiskQueueLength();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(diskQueue.ToString()))
+                };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/networkreceived"))
+            {
+                //error
+                var networkReceived = Server.TELEMETRY.GetNetworkBytesReceivedPerSecond();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(networkReceived.ToString()))
+                };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/networksent"))
+            {
+                //error
+                var networkSent = Server.TELEMETRY.GetNetworkBytesSentPerSecond();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(networkSent.ToString()))
+                };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/gccollections"))
+            {
+                var gcCollections = Server.TELEMETRY.GetGCCollectionCount();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(gcCollections.ToString()))
+                };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/gcheapsize"))
+            {
+                var gcHeapSize = Server.TELEMETRY.GetGCHeapSizeBytes();
+                return new HttpResponse(200)
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(gcHeapSize.ToString()))
+                };
+            }
+            else
+            {
+                return new HttpResponse(404);
+            }
+
         }
         private HttpResponse RunScript(string scriptDirectory, Dictionary<string, string> queryParameters)
         {
