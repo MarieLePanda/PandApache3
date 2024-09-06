@@ -1,27 +1,47 @@
 ﻿using pandapache.src.Configuration;
 using PandApache3.src.LoggingAndMonitoring;
+using PandApache3.src.Module;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
 namespace pandapache.src.LoggingAndMonitoring
 {
-    public static class Logger
+    public class Logger
     {
 
-        private static string logDirectory;
-        private static string logFileName;
-        private static int maxLogFiles;
-        private static int maxSizeFile;
-        private static string logLevel;
-        private static int maxBufferSize = 100;
-        private static ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
-        private static SortedList<DateTime, LogEntry> _logsHistory = new SortedList<DateTime, LogEntry>();
-        private static readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-        private static int logCount = 0;        
-        public static bool hold = true;
+        private string logDirectory;
+        private string logFileName;
+        private int maxLogFiles;
+        private int maxSizeFile;
+        private string logLevel;
+        private int maxBufferSize = 100;
+        private ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
+        private SortedList<DateTime, LogEntry> _logsHistory = new SortedList<DateTime, LogEntry>();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private int logCount = 0;        
+        public bool hold = true;
 
-        public static IEnumerable<LogEntry> GetLogHistory()
+        private Logger()
+        {
+
+        }
+
+        public static Logger Instance
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new SingletonLogger();
+                    }
+                    return _instance;
+                }
+            }
+        }
+        public IEnumerable<LogEntry> GetLogHistory()
         {
             _lock.EnterReadLock();
             try
@@ -33,7 +53,7 @@ namespace pandapache.src.LoggingAndMonitoring
                 _lock.ExitReadLock();
             }
         }
-        public static void GetReady()
+        public void GetReady()
         {
             Logger.logDirectory = ServerConfiguration.Instance.LogFolder;
             Logger.logFileName = ServerConfiguration.Instance.LogFile;
@@ -42,33 +62,33 @@ namespace pandapache.src.LoggingAndMonitoring
             Logger.logLevel = ServerConfiguration.Instance.LogLevel;
         }
 
-        public static void LogDebug(string message)
+        public void LogDebug(string message)
         {
             if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
                 preLog("DEBUG",message);
         }
 
-        public static void LogInfo(string message)
+        public void LogInfo(string message)
         {
             if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
                 preLog("INFO", message);
         }
 
-        public static void LogWarning(string message)
+        public void LogWarning(string message)
         {
             if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
                 preLog("WARNING", message);
 
         }
 
-        public static void LogError(string message)
+        public void LogError(string message)
         {
             if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
                 preLog("ERROR", message);
 
         }
 
-        private static void preLog(string level, string message)
+        private void preLog(string level, string message)
         {
             DateTime timestamp = DateTime.Now;
             Thread currentThread = Thread.CurrentThread;
@@ -79,11 +99,11 @@ namespace pandapache.src.LoggingAndMonitoring
             
             historyLog(logEntry);
 
-            if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog && Server.STATUS.Equals("PandApache3 is up and running!"))
+            if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog &&  Server.Instance.Status.Equals("PandApache3 is up and running!"))
                 flushLog();
         }
 
-        private static void historyLog(LogEntry logEntry)
+        private void historyLog(LogEntry logEntry)
         {
             if(ServerConfiguration.Instance.MaxHistoryLog <= 0)
                 return;
@@ -104,7 +124,12 @@ namespace pandapache.src.LoggingAndMonitoring
                     _logsHistory.RemoveAt(0);
                 }
 
-                _logsHistory.Add(logEntry.Timestamp, logEntry);
+                DateTime timestamp = logEntry.Timestamp;
+                while (_logsHistory.ContainsKey(timestamp))
+                {
+                    timestamp = timestamp.AddTicks(1);
+                }
+                _logsHistory.Add(timestamp, logEntry);
             }
             catch (Exception ex)
             {
@@ -116,7 +141,7 @@ namespace pandapache.src.LoggingAndMonitoring
             }
         }
 
-        public static void flushLog()
+        public void flushLog()
         {
             string message = string.Empty;
             StringBuilder sb = new StringBuilder();
@@ -133,7 +158,7 @@ namespace pandapache.src.LoggingAndMonitoring
                 Log(sb.ToString());
             }
         }
-        private static void Log(string message)
+        private void Log(string message)
         {
             try
             {
@@ -180,7 +205,7 @@ namespace pandapache.src.LoggingAndMonitoring
             }
         }
 
-        private static void RotateLog()
+        private void RotateLog()
         {
             try
             {
@@ -200,7 +225,7 @@ namespace pandapache.src.LoggingAndMonitoring
             }
         }
 
-        private static void DeleteOldLogFiles()
+        private void DeleteOldLogFiles()
         {
             try
             {

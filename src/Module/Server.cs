@@ -1,0 +1,191 @@
+﻿using pandapache.src.Configuration;
+using pandapache.src.ConnectionManagement;
+using pandapache.src.LoggingAndMonitoring;
+using pandapache.src.Middleware;
+using pandapache.src.RequestHandling;
+using pandapache.src.ResponseGeneration;
+using PandApache3.src.Middleware;
+using PandApache3.src.ResponseGeneration;
+using System.Diagnostics;
+using System.Threading;
+
+
+namespace PandApache3.src.Module
+{
+    public class Server
+    {
+        public string Status;
+        public Dictionary<ModuleType, IModule> Modules = new Dictionary<ModuleType, IModule>();
+        public Dictionary<string, Func<HttpContext, Task>> Pipelines = new Dictionary<string, Func<HttpContext, Task>>();
+        public Dictionary<string, CancellationTokenSource> CancellationTokens = new Dictionary<string, CancellationTokenSource>();
+        public readonly CancellationTokenSource CancellationTokenSource;
+        public IFileManager fileManager;
+        private static Server _instance;
+
+        private int _retry = 1;
+        private readonly object _lock = new object();
+        private Server() 
+        {
+            Status = "PandApache3 is stopped";
+            CancellationTokenSource = new CancellationTokenSource();
+        }
+
+
+        public static Server Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new Server();
+                return _instance;
+            }
+        }
+
+        public T GetModule<T>(ModuleType moduleType) where T : IModule
+        {
+            return (T)Modules[moduleType];
+        }
+
+        public void Init()
+        {
+         
+            //Clean previous list in case of restart
+            Pipelines.Clear();
+            Modules.Clear();
+            CancellationTokens.Clear();
+
+            fileManager = FileManagerFactory.Instance();
+
+            //Create pipeline
+            TerminalMiddleware terminalMiddleware = new TerminalMiddleware();
+            RoutingMiddleware routingMiddleware = new RoutingMiddleware(terminalMiddleware.InvokeAsync, fileManager);
+            DirectoryMiddleware directoryMiddleware = new DirectoryMiddleware(routingMiddleware.InvokeAsync);
+            AuthenticationMiddleware authenticationMiddleware = new AuthenticationMiddleware(directoryMiddleware.InvokeAsync);
+            LoggerMiddleware loggerMiddleware = new LoggerMiddleware(authenticationMiddleware.InvokeAsync);
+            Pipelines.Add("web", loggerMiddleware.InvokeAsync);
+
+
+            AdminMiddleware adminMiddleware = new AdminMiddleware(terminalMiddleware.InvokeAsync, fileManager);
+            DirectoryMiddleware adminDirectoryMiddleware = new DirectoryMiddleware(adminMiddleware.InvokeAsync);
+            AuthenticationMiddleware adminAuthenticationMiddleware = new AuthenticationMiddleware(adminDirectoryMiddleware.InvokeAsync);
+            LoggerMiddleware adminLoggerMiddleware = new LoggerMiddleware(adminAuthenticationMiddleware.InvokeAsync);
+
+            Pipelines.Add("admin", adminLoggerMiddleware.InvokeAsync);
+
+            //Create task scheduler
+            TaskScheduler telemetryTaskScheduler = new ResourceTaskScheduler("TelemetryScheduler", ServerConfiguration.Instance.TelemetryThreadNumber);
+            TaskScheduler webTaskScheduleur = new ResourceTaskScheduler("WebScheduler", ServerConfiguration.Instance.WebThreadNumber);
+            TaskScheduler adminTaskScheduleur = new ResourceTaskScheduler("AdminScheduler", ServerConfiguration.Instance.AdminThreadNumber);
+
+            //Create module
+
+            TelemetryModule telemetryModule = new TelemetryModule(telemetryTaskScheduler);
+            ConnectionManagerModule webModule = new ConnectionManagerModule(ModuleType.Web, Pipelines["web"], webTaskScheduleur);
+            ConnectionManagerModule adminbModule = new ConnectionManagerModule(ModuleType.Admin, Pipelines["admin"], adminTaskScheduleur);
+
+
+            
+            Modules.Add(ModuleType.Telemetry, telemetryModule);
+            Modules.Add(ModuleType.Web, webModule);
+            Modules.Add(ModuleType.Admin, adminbModule);
+
+            foreach (var moduleKey in Modules.Keys)
+            {
+                if (!Modules[moduleKey].isEnable())
+                {
+                    Logger.LogWarning($"Module {moduleKey} disabled");
+                    Modules.Remove(moduleKey);
+                }
+            }
+        }
+
+        public async Task StartAsync()
+        {
+            Status = "PandApache3 is starting";
+            Logger.LogInfo($"{Status}");
+
+            CancelModuleToken();
+
+            foreach (var moduleName in Modules.Keys)
+            {
+                await Modules[moduleName].StartAsync();
+            }
+
+            Status = "PandApache3 is started";
+        }
+
+        public async Task RunAsync()
+        {
+            Status = "PandApache3 is up and running!";
+            Logger.LogInfo($"{Status}");
+            List<Task> tasks = new List<Task>();
+            foreach (var moduleName in Modules.Keys)
+            {
+                tasks.Add(Task.Run(() => Modules[moduleName].RunAsync()));
+            }
+
+            await Task.WhenAll(tasks); 
+
+        }
+
+        public async Task StoppAsync(bool isRestart=false)
+        {
+            if (!Monitor.TryEnter(_lock))
+            {
+                Logger.LogDebug($"Thread (Thread ID: {Thread.CurrentThread.ManagedThreadId}) could not acquire the lock and will exit.");
+                Logger.LogInfo("Server is already stopping");
+                return;
+            }
+
+            lock (_lock)
+            {
+                Thread currentThread = Thread.CurrentThread;
+                Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) run the function StopServerAsync");
+
+
+                Status = "PandApache3 is stopping";
+                Logger.LogInfo($"{Status}");
+
+                CancelModuleToken();
+
+                foreach (var moduleName in Modules.Keys)
+                {
+                    Modules[moduleName].StopAsync();
+                }
+
+                // Get all threads in the current process
+
+
+                Status = "PandApache3 is stopped";
+                Logger.LogInfo($"{Status}");
+
+                if (isRestart == false)
+                {
+                    CancellationTokenSource.Cancel();
+                    Logger.LogInfo($"Token server: {CancellationTokenSource.Token} canceled");
+
+                }
+            }
+
+            Logger.LogDebug("Get out of the lock");
+            Monitor.Exit(_lock);
+        }
+
+
+        private void CancelModuleToken()
+        {
+            foreach (var tokenName in CancellationTokens.Keys)
+            {
+                if (tokenName.Equals("server"))
+                {
+                    continue;
+                }
+                else
+                {
+                    Logger.LogInfo($"Cancel previous {tokenName} token: {CancellationTokens[tokenName].Token}");
+                    CancellationTokens[tokenName].Cancel();
+                }
+            }
+        }
+    }
+}

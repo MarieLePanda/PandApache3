@@ -1,7 +1,10 @@
 ﻿using pandapache.src.Configuration;
 using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
+using pandapache.src.ResponseGeneration;
+using PandApache3.src.Configuration;
 using PandApache3.src.LoggingAndMonitoring;
+using PandApache3.src.Module;
 using PandApache3.src.ResponseGeneration;
 using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
@@ -14,16 +17,18 @@ namespace pandapache.src.Middleware
     public class AdminMiddleware : IMiddleware
     {
         private readonly Func<HttpContext, Task> _next;
+        private readonly IFileManager _fileManager;
 
-        public AdminMiddleware(Func<HttpContext, Task> next)
+        public AdminMiddleware(Func<HttpContext, Task> next, IFileManager fileManager)
         {
             _next = next;
+            _fileManager = fileManager;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
             Logger.LogDebug("Admin middleware");
-
+ 
             Request request = context.Request;
 
             if (request.Verb == "GET")
@@ -34,7 +39,7 @@ namespace pandapache.src.Middleware
                     context.Response = getMonitor(request);
                 }
                 else if (request.Path.ToLower().StartsWith(adminURL))
-                    context.Response = getAdmin(request);
+                    context.Response = await getAdminAsync(request);
                 
                 else
                 {
@@ -50,7 +55,7 @@ namespace pandapache.src.Middleware
             await _next(context);
         }
 
-        private HttpResponse getAdmin(Request request)
+        private async Task<HttpResponse> getAdminAsync(Request request)
         {
             Logger.LogInfo($"Request for admin: {request.Path}");
             HttpResponse response;
@@ -60,7 +65,7 @@ namespace pandapache.src.Middleware
             {
                 response = new HttpResponse(200)
                 {
-                    Body = new MemoryStream(Encoding.UTF8.GetBytes(Server.STATUS))
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(Server.Instance.Status))
                 };
 
             }
@@ -98,7 +103,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().Equals(adminURL + "/stop"))
             {
-                Task.Run(() => Server.StoppingServerAsync(false));
+                Task.Run(() => Server.Instance.StoppAsync(false));
 
                 response = new HttpResponse(200)
                 {
@@ -107,7 +112,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().Equals(adminURL + "/restart"))
             {
-                Task.Run(() => Server.StoppingServerAsync(true));
+                Task.Run(() => Server.Instance.StoppAsync(true));
 
                 response = new HttpResponse(200)
                 {
@@ -142,11 +147,11 @@ namespace pandapache.src.Middleware
                     }
                     else
                     {
-                        string bodyScript = "Here the list of script on the PandApache3 server:\n";
+                        string bodyScript = string.Empty;
                         foreach (string script in Directory.GetFiles(scriptsDirectory))
                         {
                             FileInfo fileInfo = new FileInfo(script);
-                            bodyScript += $"\t- {fileInfo.Name}\n";
+                            bodyScript += $"{fileInfo.Name}\n";
                         }
 
                         response = new HttpResponse(200)
@@ -164,8 +169,13 @@ namespace pandapache.src.Middleware
                 }
 
             }
+            else if (request.Path.ToLower().StartsWith(adminURL))
+            {
+                response = await getAdminPage(request);
+            }
             else
             {
+
                 response = new HttpResponse(404)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes("Oh oh, you should not have seen that"))
@@ -197,18 +207,19 @@ namespace pandapache.src.Middleware
         private HttpResponse getMonitor(Request request)
         {
             string adminURL = ServerConfiguration.Instance.AdminDirectory.URL;
+            TelemetryModule telemetryModule = Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry);
 
             if (request.Path.ToLower().StartsWith(adminURL + "/monitor/cpu"))
             {
-                var cpuUsage = Server.TELEMETRY.GetCpuUsagePercentage();
+                var cpuUsage = telemetryModule.TelemetryCollector.GetCpuUsagePercentage();
                 return new HttpResponse(200)
-                { 
-                    Body = new MemoryStream(Encoding.UTF8.GetBytes(cpuUsage.ToString())) 
+                {
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes(cpuUsage.ToString()))
                 };
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/availablememory"))
             {
-                var availableMemory = Server.TELEMETRY.GetAvailableMemoryMB();
+                var availableMemory = telemetryModule.TelemetryCollector.GetAvailableMemoryMB();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(availableMemory.ToString()))
@@ -216,7 +227,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/privatememory"))
             {
-                var privateMemory = Server.TELEMETRY.GetPrivateMemoryUsageMB();
+                var privateMemory = telemetryModule.TelemetryCollector.GetPrivateMemoryUsageMB();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(privateMemory.ToString()))
@@ -224,7 +235,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/virtualmemory"))
             {
-                var virtualMemory = Server.TELEMETRY.GetVirtualMemoryUsageMB();
+                var virtualMemory = telemetryModule.TelemetryCollector.GetVirtualMemoryUsageMB();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(virtualMemory.ToString()))
@@ -232,7 +243,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/cputime"))
             {
-                var cpuTime = Server.TELEMETRY.GetProcessCpuTime();
+                var cpuTime = telemetryModule.TelemetryCollector.GetProcessCpuTime();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(cpuTime.ToString()))
@@ -240,7 +251,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/diskread"))
             {
-                var diskRead = Server.TELEMETRY.GetDiskReadBytesPerSecond();
+                var diskRead = telemetryModule.TelemetryCollector.GetDiskReadBytesPerSecond();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(diskRead.ToString()))
@@ -248,7 +259,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/diskwrite"))
             {
-                var diskWrite = Server.TELEMETRY.GetDiskWriteBytesPerSecond();
+                var diskWrite = telemetryModule.TelemetryCollector.GetDiskWriteBytesPerSecond();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(diskWrite.ToString()))
@@ -256,7 +267,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/diskqueue"))
             {
-                var diskQueue = Server.TELEMETRY.GetDiskQueueLength();
+                var diskQueue = telemetryModule.TelemetryCollector.GetDiskQueueLength();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(diskQueue.ToString()))
@@ -265,7 +276,7 @@ namespace pandapache.src.Middleware
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/networkreceived"))
             {
                 //error
-                var networkReceived = Server.TELEMETRY.GetNetworkBytesReceivedPerSecond();
+                var networkReceived = telemetryModule.TelemetryCollector.GetNetworkBytesReceivedPerSecond();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(networkReceived.ToString()))
@@ -274,7 +285,7 @@ namespace pandapache.src.Middleware
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/networksent"))
             {
                 //error
-                var networkSent = Server.TELEMETRY.GetNetworkBytesSentPerSecond();
+                var networkSent = telemetryModule.TelemetryCollector.GetNetworkBytesSentPerSecond();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(networkSent.ToString()))
@@ -282,7 +293,7 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/gccollections"))
             {
-                var gcCollections = Server.TELEMETRY.GetGCCollectionCount();
+                var gcCollections = telemetryModule.TelemetryCollector.GetGCCollectionCount();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(gcCollections.ToString()))
@@ -290,11 +301,29 @@ namespace pandapache.src.Middleware
             }
             else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/gcheapsize"))
             {
-                var gcHeapSize = Server.TELEMETRY.GetGCHeapSizeBytes();
+                var gcHeapSize = telemetryModule.TelemetryCollector.GetGCHeapSizeBytes();
                 return new HttpResponse(200)
                 {
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(gcHeapSize.ToString()))
                 };
+            }
+            else if (request.Path.ToLower().StartsWith(adminURL + "/monitor/metric"))
+            {
+                if (request.queryParameters.Count > 0)
+                {
+                    string metricName = request.queryParameters["name"];
+                    Queue<KeyValuePair<DateTime,double>> values = telemetryModule.TelemetryCollector._metrics[metricName];
+                    string json = Newtonsoft.Json.JsonConvert.SerializeObject(values);
+                    HttpResponse response = new HttpResponse(200)
+                    {
+                        Body = new MemoryStream(Encoding.UTF8.GetBytes(json))
+                    };
+                    response.AddHeader("Content-Type", "application/json");
+                    return response;
+                }
+
+                return new HttpResponse(404);
+
             }
             else
             {
@@ -352,8 +381,9 @@ namespace pandapache.src.Middleware
 
                     response = new HttpResponse(200)
                     {
-                        Body = new MemoryStream(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(scriptResult)))
+                        Body = new MemoryStream(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(scriptResult))),
                     };
+                    response.AddHeader("Content-Type", "application/json");
                 }
             }
             catch (Exception ex)
@@ -365,6 +395,108 @@ namespace pandapache.src.Middleware
             return response;
         }
 
+        private async Task<HttpResponse> getAdminPage(Request request)
+        {
+            
+            if (request.Verb.ToUpper().Equals("GET"))
+            {
+                return await GetHandlerAsync(request);
+            }
+            else
+            {
+                return new HttpResponse(404);
+            }
+        }
+
+        private async Task<HttpResponse> GetHandlerAsync(Request request)
+        {
+
+            try
+            {
+                bool AuthNeeded = false;
+                string mainDirectory = ServerConfiguration.Instance.RootDirectory;
+                string filePath = Path.Combine(mainDirectory, Utils.GetFilePath(request.Path));
+                if (_fileManager.Exists(filePath))
+                {
+                    string fileExtension = Path.GetExtension(filePath).Substring(1).ToLowerInvariant();
+                    string mimeType = fileExtension switch
+                    {
+                        // Images
+                        "jpg" or "jpeg" => "image/jpeg",
+                        "png" => "image/png",
+                        "gif" => "image/gif",
+                        "svg" => "image/svg+xml",
+                        "bmp" => "image/bmp",
+                        "webp" => "image/webp",
+                        "ico" => "image/x-icon",
+
+                        // Documents textuels
+                        "txt" => "text/plain",
+                        "html" or "htm" => "text/html",
+                        "css" => "text/css",
+                        "js" => "application/javascript",
+                        "json" => "application/json",
+                        "xml" => "text/xml",
+                        "woff" => "application/font-woff",
+                        "woff2" => "font/woff2",
+
+
+                        // Audio
+                        "mp3" => "audio/mpeg",
+                        "wav" => "audio/wav",
+                        "ogg" => "audio/ogg",
+                        "midi" => "audio/midi",
+
+                        // Vidéo
+                        "mp4" => "video/mp4",
+                        "avi" => "video/x-msvideo",
+                        "mov" => "video/quicktime",
+                        "webm" => "video/webm",
+
+                        // Archives
+                        "zip" => "application/zip",
+                        "rar" => "application/vnd.rar",
+                        "7z" => "application/x-7z-compressed",
+
+                        // Documents Office et formats ouverts
+                        "pdf" => "application/pdf",
+                        "doc" or "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        "xls" or "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "ppt" or "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                        "odt" => "application/vnd.oasis.opendocument.text",
+                        "ods" => "application/vnd.oasis.opendocument.spreadsheet",
+
+                        // Cas par défaut si l'extension n'est pas reconnue
+                        _ => null
+                    };
+
+                    if (mimeType != null)
+                    {
+                        byte[] data = await File.ReadAllBytesAsync(filePath);
+                        HttpResponse httpResponse = new HttpResponse(200)
+                        {
+                            Body = new MemoryStream(data)
+                        };
+                        httpResponse.AddHeader("Content-Type", mimeType);
+                        httpResponse.AddHeader("Content-Length", httpResponse.Body.Length.ToString());
+                        return httpResponse;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Mine type not implemented");
+                        Logger.LogError("Mine type not implemented");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"An error occurred with a GET request: {ex.Message}");
+                return new HttpResponse(500);
+            }
+
+            return new HttpResponse(404);
+
+        }
 
     }
 

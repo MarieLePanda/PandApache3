@@ -4,6 +4,7 @@ using System.Net;
 using Newtonsoft.Json;
 using System.IO;
 using PandApache3.src.ResponseGeneration;
+using PandApache3.src.Module;
 
 namespace pandapache.src.Configuration
 {
@@ -26,6 +27,10 @@ namespace pandapache.src.Configuration
         //Performance
         public int MaxAllowedConnections { get; set; } = 100;
         public int MaxRejectedConnections { get; set; } = 50;
+        public int TelemetryThreadNumber { get; set; } = 2;
+        public int WebThreadNumber { get; set; } = 4;
+        public int AdminThreadNumber { get; set; } = 2;
+
 
         //Logging
         public bool LogToFile { get; set; } = true;
@@ -51,8 +56,7 @@ namespace pandapache.src.Configuration
         //Other
         public string Platform{ get; set; }
         public List<DirectoryConfig> Directories { get; set; } = new List<DirectoryConfig>();
-        // public string AuthName {  get; set; }
-        // Ajoutez d'autres propriétés de configuration selon vos besoins
+        public List<ModuleInfo> Modules { get; set; } = new List<ModuleInfo>();
 
         public static ServerConfiguration Instance
         {
@@ -136,6 +140,7 @@ namespace pandapache.src.Configuration
 
                 List<string> currentSection = new List<string>();
                 DirectoryConfig currentDirectory = null;
+                ModuleInfo currentModule = null;
                 Logger.LogDebug("Reading the configuration file line by line");
                 foreach (var line in File.ReadLines(fullPath))
                 {
@@ -187,6 +192,17 @@ namespace pandapache.src.Configuration
                             Logger.LogDebug($"Section added: {sectionName}");
                             continue;
                         }
+                        else if (sectionName.StartsWith("Module") && currentModule == null)
+                        {
+                            currentSection.Add("Module");
+                            string moduleName = sectionName.Split(' ')[1];
+
+                            currentModule = new ModuleInfo(moduleName);
+                            Modules.Add(currentModule);
+
+                            continue;
+                        }
+
                         continue;
                     }
 
@@ -210,7 +226,16 @@ namespace pandapache.src.Configuration
 
                             continue;
                         }
-                        else if (currentDirectory != null && currentSection.Last().Equals("Directory") || currentSection.Last().Equals("Admin"))
+                        else if (line.Trim() == "</Module>")
+                        {
+                            currentModule = null;
+                            currentSection.Remove("Module");
+                            Logger.LogDebug($"Section end: Module");
+
+                            continue;
+                        }
+
+                        else if (currentDirectory != null && currentSection.Last().Equals("Directory") || currentSection.Last().Equals("Admin") || currentSection.Last().Equals("Module"))
                         {
                             getKeyValue(line);
                         }
@@ -230,6 +255,7 @@ namespace pandapache.src.Configuration
                             Logger.LogDebug($"Allow method: {line.Trim()}");
 
                         }
+
 
                     }
                     else
@@ -282,6 +308,9 @@ namespace pandapache.src.Configuration
                 ["adminport"] = v => TrySetIntValue(v, val => AdminPort = val, "Admin port invalid"),
                 ["maxallowedconnections"] = v => TrySetIntValue(v, val => MaxAllowedConnections = val, "Maximum allowed connection invalid"),
                 ["maxrejectedconnections"] = v => TrySetIntValue(v, val => MaxRejectedConnections = val, "Maximum rejected connection invalid"),
+                ["telemetrythreadnumber"] = v => TrySetIntValue(v, val => TelemetryThreadNumber = val, "Telemetry thread number invalid"),
+                ["webthreadnumber"] = v => TrySetIntValue(v, val => WebThreadNumber = val, "Web thread number invalid"),
+                ["adminthreadnumber"] = v => TrySetIntValue(v, val => AdminThreadNumber = val, "Admin thread number invalid"),
                 ["logtofile"] = v => TrySetBoolValue(v, val => LogToFile = val, "LogToFile invalid"),
                 ["logtoconsole"] = v => TrySetBoolValue(v, val => LogToConsole = val, "LogToConsole invalid"),
                 ["logfolder"] = v => LogFolder = v,
@@ -299,7 +328,8 @@ namespace pandapache.src.Configuration
                 ["authtype"] = v => Directories.Last().AuthType = v,
                 ["authname"] = v => Directories.Last().AuthName = v,
                 ["authuserfile"] = v => Directories.Last().AuthUserFile = v,
-                ["require"] = v => Directories.Last().Require = v
+                ["require"] = v => Directories.Last().Require = v,
+                ["enable"] = v => TrySetBoolValue(v, val => Modules.Last().isEnable = val, "enable value invalid"),
 
 
             };

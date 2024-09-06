@@ -1,0 +1,94 @@
+﻿using pandapache.src;
+using pandapache.src.Configuration;
+using pandapache.src.ConnectionManagement;
+using pandapache.src.LoggingAndMonitoring;
+using pandapache.src.Middleware;
+using pandapache.src.RequestHandling;
+using pandapache.src.ResponseGeneration;
+using PandApache3.src;
+using PandApache3.src.LoggingAndMonitoring;
+using PandApache3.src.Middleware;
+using PandApache3.src.Module;
+using PandApache3.src.ResponseGeneration;
+using System;
+using System.Diagnostics;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+
+class Startup
+{
+    public static int PROCESSID { get ; set; } 
+    public static string PROCESSNAME { get; set; }
+    private static Func<HttpContext, Task> webPipeline;
+    private static Func<HttpContext, Task> adminPipeline;
+
+    private static ConnectionManagerModule _ConnectionManagerWeb = null;
+    private static ConnectionManagerModule _ConnectionManagerAdmin = null;
+    private static CancellationTokenSource _cancellationTokenSourceServer = new CancellationTokenSource();
+    
+    private static int _retry = 1;
+    private static readonly object _lock = new object();
+
+
+    static async Task Main(string[] args)
+    {
+        Server PandApache3 = Server.Instance;
+
+        while (PandApache3.CancellationTokenSource.IsCancellationRequested == false)
+        {
+             Thread.Sleep(1000);
+            if (PandApache3.Status.Equals("PandApache3 is stopping"))
+                continue;
+
+            if(PandApache3.CancellationTokenSource.IsCancellationRequested == true)
+            {
+                continue;
+            }
+
+            string banner = @"
+            ██████╗  █████╗ ███╗   ██╗██████╗  █████╗ 
+            ██╔══██╗██╔══██╗████╗  ██║██╔══██╗██╔══██╗
+            ██████╔╝███████║██╔██╗ ██║██║  ██║███████║
+            ██╔═══╝ ██╔══██║██║╚██╗██║██║  ██║██╔══██║
+            ██║     ██║  ██║██║ ╚████║██████╔╝██║  ██║
+            ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝
+                                          
+            ██████╗  █████╗  ██████╗██╗  ██╗███████╗  
+            ██╔══██╗██╔══██╗██╔════╝██║  ██║██╔════╝  
+            ██████╔╝███████║██║     ███████║█████╗    
+            ██╔═══╝ ██╔══██║██║     ██╔══██║██╔══╝    
+            ██║     ██║  ██║╚██████╗██║  ██║███████╗  
+            ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝  
+                                          
+            ██████╗    ██████╗                        
+            ╚════██╗   ╚════██╗                       
+             █████╔╝    █████╔╝                       
+             ╚═══██╗    ╚═══██╗                       
+            ██████╔╝██╗██████╔╝                       
+            ╚═════╝ ╚═╝╚═════╝                        
+            ";
+
+            PandApache3.Init();
+            PandApache3.StartAsync();
+            
+            Logger.LogInfo(banner);
+            Logger.GetReady();
+            Logger.flushLog();
+            
+            PROCESSID = Process.GetCurrentProcess().Id;
+            PROCESSNAME = Process.GetCurrentProcess().ProcessName;
+            Logger.LogInfo($"PandApache3 process id:{PROCESSID}");
+            Logger.LogInfo($"PandApache3 process name:{PROCESSNAME}");
+            
+            await PandApache3.RunAsync();
+
+        }
+
+        Logger.LogInfo("La revedere !");
+        Logger.flushLog();
+    }
+
+
+
+}

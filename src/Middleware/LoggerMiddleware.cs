@@ -16,7 +16,14 @@ namespace pandapache.src.Middleware
                 Logger.LogInfo("Logging Middleware");
                 LogRequest(context.Request);
                 await _next(context);
-                LogResponse(context.Response);
+                if (context.Response != null)
+                {
+                    LogResponse(context.Response);
+                }
+                else
+                {
+                    Console.WriteLine(context.Request.Path);
+                }
             }
 
             private void LogRequest(Request request)

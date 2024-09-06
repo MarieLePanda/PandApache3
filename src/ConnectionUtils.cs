@@ -27,7 +27,7 @@ namespace pandapache.src
             return request;
         }
 
-        public async static Task SendResponseAsync(ISocketWrapper client, HttpResponse response)
+        public async static Task SendResponseAsync(ISocketWrapper client, HttpResponse response, Request request)
         {
             try
             {

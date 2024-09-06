@@ -22,7 +22,7 @@ namespace PandApache3.src.LoggingAndMonitoring
 
         public static string CurrentProcess()
         {
-            string cmd = $"Get-Process -Name {Server.PROCESSNAME}";
+            string cmd = $"Get-Process -Name {Startup.PROCESSNAME}";
 
             return RunPowerShelCommand(cmd);
         }
@@ -48,7 +48,7 @@ namespace PandApache3.src.LoggingAndMonitoring
             cmds.Add("Get-WmiObject -Class Win32_PerfFormattedData_PerfDisk_LogicalDisk | Select-Object Name, AvgDiskSecPerRead, AvgDiskSecPerWrite");
             cmds.Add("Get-WmiObject -Class Win32_PerfFormattedData_PerfDisk_LogicalDisk | Select-Object Name, DiskBytesPerSec");
             cmds.Add("Get-WmiObject -Class Win32_PerfFormattedData_PerfDisk_LogicalDisk | Select-Object Name, CurrentDiskQueueLength");
-            cmds.Add("Get-Process -Name " + Server.PROCESSNAME + " | Select-Object Name, Id, @{Name='IO Read Operations';Expression={$_.IOReadOperations}}, @{Name='IO Write Operations';Expression={$_.IOWriteOperations}}");
+            cmds.Add("Get-Process -Name " + Startup.PROCESSNAME + " | Select-Object Name, Id, @{Name='IO Read Operations';Expression={$_.IOReadOperations}}, @{Name='IO Write Operations';Expression={$_.IOWriteOperations}}");
             cmds.Add("Get-WmiObject -Class Win32_PerfFormattedData_PerfDisk_LogicalDisk | Select-Object Name, CurrentDiskQueueLength");
 
             foreach (string cmd in cmds)
