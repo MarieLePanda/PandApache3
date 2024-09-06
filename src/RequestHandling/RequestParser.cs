@@ -2,6 +2,7 @@
 using pandapache.src.Configuration;
 using pandapache.src.LoggingAndMonitoring;
 using PandApache3.src.ResponseGeneration;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src.RequestHandling
 {
@@ -12,6 +13,7 @@ namespace pandapache.src.RequestHandling
         {
             if (string.IsNullOrEmpty(rawRequest))
             {
+
                 throw new ArgumentException("Raw request cannot be null or empty.");
             }
 
@@ -86,14 +88,14 @@ namespace pandapache.src.RequestHandling
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError($"Error during file saving: {ex.Message}");
+                    ExecutionContext.Current.Logger.LogError($"Error during file saving: {ex.Message}");
                     return new HttpResponse(500);
                 }
 
             }
             else
             {
-                Logger.LogWarning("Document upload not allowed");
+                ExecutionContext.Current.Logger.LogWarning("Document upload not allowed");
                 return new HttpResponse(413);
             }
 

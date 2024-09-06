@@ -2,15 +2,11 @@
 using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
 using pandapache.src.ResponseGeneration;
-using PandApache3.src.Configuration;
-using PandApache3.src.LoggingAndMonitoring;
 using PandApache3.src.Module;
 using PandApache3.src.ResponseGeneration;
 using System.Diagnostics;
-using System.Runtime.InteropServices.JavaScript;
-using System.Security.Cryptography;
 using System.Text;
-using System.Xml;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src.Middleware
 {
@@ -27,7 +23,7 @@ namespace pandapache.src.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            Logger.LogDebug("Admin middleware");
+            ExecutionContext.Current.Logger.LogDebug("Admin middleware");
  
             Request request = context.Request;
 
@@ -57,10 +53,10 @@ namespace pandapache.src.Middleware
 
         private async Task<HttpResponse> getAdminAsync(Request request)
         {
-            Logger.LogInfo($"Request for admin: {request.Path}");
+            ExecutionContext.Current.Logger.LogInfo($"Request for admin: {request.Path}");
             HttpResponse response;
             string adminURL = ServerConfiguration.Instance.AdminDirectory.URL;
-            Logger.LogDebug($"URL for adminsitration: {adminURL}");
+            ExecutionContext.Current.Logger.LogDebug($"URL for adminsitration: {adminURL}");
             if (request.Path.ToLower().Equals(adminURL + "/status"))
             {
                 response = new HttpResponse(200)
@@ -84,7 +80,7 @@ namespace pandapache.src.Middleware
                 {
                     foreach (var item in request.queryParameters)
                     {
-                        Logger.LogDebug($"key and value: <{item.Key}/{item.Value}>");
+                        ExecutionContext.Current.Logger.LogDebug($"key and value: <{item.Key}/{item.Value}>");
                         ServerConfiguration.Instance.MapConfiguration(item.Key, item.Value);
                     }
 
@@ -123,7 +119,7 @@ namespace pandapache.src.Middleware
             {
                 StringBuilder logs = new StringBuilder();
 
-                foreach(var logEntry in Logger.GetLogHistory())
+                foreach(var logEntry in Logger.Instance.GetLogHistory())
                 {
                     logs.Append(logEntry.Message + "\n");
                 }
@@ -362,8 +358,8 @@ namespace pandapache.src.Middleware
             try
             {
 
-                Logger.LogInfo($"Execute script with {terminal}");
-                Logger.LogInfo($"Script information {argumentList}");
+                ExecutionContext.Current.Logger.LogInfo($"Execute script with {terminal}");
+                ExecutionContext.Current.Logger.LogInfo($"Script information {argumentList}");
                 using (var process = new Process { StartInfo = processInfo })
                 {
                     process.Start();
@@ -388,7 +384,7 @@ namespace pandapache.src.Middleware
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Error with script execution {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"Error with script execution {ex.Message}");
                 response = new HttpResponse(500);
             }
 
@@ -484,13 +480,13 @@ namespace pandapache.src.Middleware
                     else
                     {
                         Console.WriteLine("Mine type not implemented");
-                        Logger.LogError("Mine type not implemented");
+                        ExecutionContext.Current.Logger.LogError("Mine type not implemented");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.LogError($"An error occurred with a GET request: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"An error occurred with a GET request: {ex.Message}");
                 return new HttpResponse(500);
             }
 

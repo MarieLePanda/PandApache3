@@ -1,10 +1,6 @@
-﻿using pandapache.src.LoggingAndMonitoring;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
+
 
 namespace PandApache3.src
 {
@@ -37,14 +33,14 @@ namespace PandApache3.src
         {
             foreach (var task in _taskQueue.GetConsumingEnumerable())
             {
-                Logger.LogInfo($"task {task.Id} in progress for {_scheduleurName}");
+                ExecutionContext.Current.Logger.LogInfo($"task {task.Id} in progress for {_scheduleurName}");
                 TryExecuteTask(task);
             }
         }
 
         protected override void QueueTask(Task task)
         {
-            Logger.LogInfo($"task {task.Id} queued for {_scheduleurName}");
+            ExecutionContext.Current.Logger.LogInfo($"task {task.Id} queued for {_scheduleurName}");
             if (_isDisposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);

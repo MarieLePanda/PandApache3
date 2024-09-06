@@ -1,18 +1,15 @@
 ﻿using pandapache.src.Configuration;
-using pandapache.src.LoggingAndMonitoring;
 using PandApache3.src.LoggingAndMonitoring;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace PandApache3.src.Module
 {
     public class TelemetryModule : IModule
     {
         private static TelemetryModule _instance;
+        private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
 
+        private VirtualLogger Logger;
         private TaskScheduler _taskScheduler;
         public TaskFactory TaskFactory { get; }
         public Telemetry TelemetryCollector { get; set; }
@@ -24,7 +21,8 @@ namespace PandApache3.src.Module
             _taskScheduler = taskScheduler;
             _cancellationTokenSource = new CancellationTokenSource();
             TaskFactory = new TaskFactory(_taskScheduler);
-            
+            Logger = new VirtualLogger("TelemetryLogger", "debug");
+
             bool moduleInfoExist = false;
             foreach (ModuleInfo moduleInfo in ServerConfiguration.Instance.Modules)
             {
@@ -37,7 +35,7 @@ namespace PandApache3.src.Module
 
             if (!moduleInfoExist)
             {
-                ModuleInfo defaultInfo = new ModuleInfo("Telemetry")
+                ModuleInfo = new ModuleInfo("Telemetry")
                 {
                     isEnable = true,
                 };
@@ -46,14 +44,18 @@ namespace PandApache3.src.Module
 
         public async Task StartAsync()
         {
-            Logger.LogInfo("Starting Telemetry module");
+            ExecutionContext.Current = ModuleInfo;
+
+            ExecutionContext.Current.Logger.LogInfo("Starting Telemetry module");
             Server.Instance.CancellationTokens.Add("telemetry", _cancellationTokenSource);
             TelemetryCollector = new Telemetry();
         }
 
         public async Task RunAsync()
         {
-            Logger.LogInfo("Running Telemetry module");
+            ExecutionContext.Current = ModuleInfo;
+
+            ExecutionContext.Current.Logger.LogInfo("Running Telemetry module");
 
             while (_cancellationTokenSource.IsCancellationRequested == false)
             {
@@ -64,12 +66,19 @@ namespace PandApache3.src.Module
 
         public async Task StopAsync()
         {
-            Logger.LogInfo("Stopping Telemetry module");
+            ExecutionContext.Current = ModuleInfo;
+
+            ExecutionContext.Current.Logger.LogInfo("Stopping Telemetry module");
         }
 
         public bool isEnable()
         {
             return ModuleInfo.isEnable;
+        }
+
+        VirtualLogger IModule.Logger()
+        {
+            return Logger;
         }
     }
 }

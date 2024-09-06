@@ -5,6 +5,8 @@ using System.Text;
 using PandApache3.src.ResponseGeneration;
 using pandapache.src.LoggingAndMonitoring;
 using PandApache3.src.Configuration;
+using PandApache3.src.Module;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src.Middleware
 {
@@ -14,7 +16,6 @@ namespace pandapache.src.Middleware
 
         private Func<HttpContext, Task> _next;
         private readonly IFileManager _FileManager;
-
         public RoutingMiddleware(Func<HttpContext, Task> next, IFileManager fileManager)
         {
             _next = next;
@@ -23,7 +24,7 @@ namespace pandapache.src.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            Logger.LogDebug("Router Middleware");
+            ExecutionContext.Current.Logger.LogDebug("Router Middleware");
 
             if (context.Request.Verb.ToUpper().Equals("GET"))
             {
@@ -92,14 +93,14 @@ namespace pandapache.src.Middleware
 
                 if (directoryConfig != null && directoryConfig.Require.Equals("valid-user"))
                 {
-                    Logger.LogDebug($"Authentification requested");
+                    ExecutionContext.Current.Logger.LogDebug($"Authentification requested");
                     AuthNeeded = true;
                 }
                 if (AuthNeeded && context.isAuth == false)
                 {
                     context.Response = new HttpResponse(401);
                     context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Authentification\"";
-                    Logger.LogWarning($"User not authenticated");
+                    ExecutionContext.Current.Logger.LogWarning($"User not authenticated");
                     return;
                 }
                 if (request.Path.StartsWith("/echo"))
@@ -181,7 +182,7 @@ namespace pandapache.src.Middleware
             }
             catch (Exception ex)
             {
-                Logger.LogError($"An error occurred with a GET request: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"An error occurred with a GET request: {ex.Message}");
                 context.Response = new HttpResponse(500);
             }
         }

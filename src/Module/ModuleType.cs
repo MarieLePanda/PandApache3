@@ -10,6 +10,7 @@ namespace PandApache3.src.Module
     {
         Telemetry,
         Web,
-        Admin
+        Admin,
+        Server
     }
 }

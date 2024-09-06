@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PandApache3.src.LoggingAndMonitoring;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ namespace PandApache3.src.Module
         public ModuleType Type;
         public string Name;
         public bool isEnable;
+        public TaskScheduler TaskScheduler;
+        public VirtualLogger Logger;
 
         public ModuleInfo(string name)
         {

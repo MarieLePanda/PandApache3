@@ -2,14 +2,13 @@
 using OpenTelemetry;
 using System.Diagnostics.Metrics;
 using OpenTelemetry.Metrics;
-using pandapache.src.LoggingAndMonitoring;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
-using System.Net;
 using pandapache.src.Configuration;
 using OpenTelemetry.Trace;
 using PandApache3.src.Module;
 using System.Collections.Concurrent;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace PandApache3.src.LoggingAndMonitoring
 {
@@ -136,10 +135,10 @@ namespace PandApache3.src.LoggingAndMonitoring
 
             if (_metrics.First().Value.Count >  10)
             {
-                Logger.LogDebug($"Limit of the metricSize reached");
+                ExecutionContext.Current.Logger.LogDebug($"Limit of the metricSize reached");
                 foreach (var key in _metrics.Keys)
                 {
-                    Logger.LogDebug($"Metric: {key}, size: {_metrics[key].Count}");
+                    ExecutionContext.Current.Logger.LogDebug($"Metric: {key}, size: {_metrics[key].Count}");
                     _metrics[key].Dequeue();
                 }
             }
@@ -159,7 +158,7 @@ namespace PandApache3.src.LoggingAndMonitoring
                 delay = 400;
             }
 
-            Logger.LogDebug($"Telemetry is based on {samples} sample with {delay} ms between each");
+            ExecutionContext.Current.Logger.LogDebug($"Telemetry is based on {samples} sample with {delay} ms between each");
 
             DateTime startTime = DateTime.Now;
             while ((DateTime.Now - startTime).TotalSeconds < collectionDurationSeconds)
@@ -183,7 +182,7 @@ namespace PandApache3.src.LoggingAndMonitoring
                 // Wait for all tasks to complete
                 await Task.WhenAll(tasks);
             }
-            Logger.LogDebug($"New collect start time: {startTime}");
+            ExecutionContext.Current.Logger.LogDebug($"New collect start time: {startTime}");
 
             DateTime metricTimestamp = DateTime.Now;
             foreach (var average in averages)
@@ -196,10 +195,10 @@ namespace PandApache3.src.LoggingAndMonitoring
         {
             foreach (var metric in _metrics)
             {
-                Logger.LogDebug($"Metric: {metric.Key}");
+                ExecutionContext.Current.Logger.LogDebug($"Metric: {metric.Key}");
                 foreach (var value in metric.Value)
                 {
-                    Logger.LogDebug($"\tTime: {value.Key}, Value: {value.Value}");
+                    ExecutionContext.Current.Logger.LogDebug($"\tTime: {value.Key}, Value: {value.Value}");
                 }
             }
         }
@@ -242,7 +241,7 @@ namespace PandApache3.src.LoggingAndMonitoring
             }
 
             double averageValue = totalValue / samples;
-            Logger.LogDebug($"{metricName}: {averageValue}");
+            ExecutionContext.Current.Logger.LogDebug($"{metricName}: {averageValue}");
             return averageValue;
         }
 
@@ -250,7 +249,7 @@ namespace PandApache3.src.LoggingAndMonitoring
         {
             if (!PerformanceCounterCategory.Exists(categoryName))
             {
-                Logger.LogError($"Category '{categoryName}' does not exist.");
+                ExecutionContext.Current.Logger.LogError($"Category '{categoryName}' does not exist.");
                 return;
             }
 
@@ -260,7 +259,7 @@ namespace PandApache3.src.LoggingAndMonitoring
             Console.WriteLine($"Instances in category '{categoryName}':");
             foreach (string instance in instances)
             {
-                Logger.LogDebug($" - {instance}");
+                ExecutionContext.Current.Logger.LogDebug($" - {instance}");
             }
         }
 
@@ -268,17 +267,17 @@ namespace PandApache3.src.LoggingAndMonitoring
         {
             if (!PerformanceCounterCategory.Exists(categoryName))
             {
-                Logger.LogError($"Category '{categoryName}' does not exist.");
+                ExecutionContext.Current.Logger.LogError($"Category '{categoryName}' does not exist.");
                 return;
             }
 
             PerformanceCounterCategory category = new PerformanceCounterCategory(categoryName);
             PerformanceCounter[] counters = category.GetCounters("_Total");
 
-            Logger.LogDebug($"Counters in category '{categoryName}':");
+            ExecutionContext.Current.Logger.LogDebug($"Counters in category '{categoryName}':");
             foreach (PerformanceCounter counter in counters)
             {
-                Logger.LogDebug($" - {counter.CounterName}");
+                ExecutionContext.Current.Logger.LogDebug($" - {counter.CounterName}");
             }
         }
 

@@ -1,20 +1,7 @@
-﻿using pandapache.src;
-using pandapache.src.Configuration;
-using pandapache.src.ConnectionManagement;
-using pandapache.src.LoggingAndMonitoring;
-using pandapache.src.Middleware;
+﻿using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
-using pandapache.src.ResponseGeneration;
-using PandApache3.src;
-using PandApache3.src.LoggingAndMonitoring;
-using PandApache3.src.Middleware;
 using PandApache3.src.Module;
-using PandApache3.src.ResponseGeneration;
-using System;
 using System.Diagnostics;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 class Startup
 {
@@ -72,21 +59,21 @@ class Startup
             PandApache3.Init();
             PandApache3.StartAsync();
             
-            Logger.LogInfo(banner);
-            Logger.GetReady();
-            Logger.flushLog();
+            Logger.Instance.LogInfo(banner);
+            Logger.Instance.GetReady();
+            Logger.Instance.flushLog();
             
             PROCESSID = Process.GetCurrentProcess().Id;
             PROCESSNAME = Process.GetCurrentProcess().ProcessName;
-            Logger.LogInfo($"PandApache3 process id:{PROCESSID}");
-            Logger.LogInfo($"PandApache3 process name:{PROCESSNAME}");
+            Logger.Instance.LogInfo($"PandApache3 process id:{PROCESSID}");
+            Logger.Instance.LogInfo($"PandApache3 process name:{PROCESSNAME}");
             
             await PandApache3.RunAsync();
 
         }
 
-        Logger.LogInfo("La revedere !");
-        Logger.flushLog();
+        Logger.Instance.LogInfo("La revedere !");
+        Logger.Instance.flushLog();
     }
 
 

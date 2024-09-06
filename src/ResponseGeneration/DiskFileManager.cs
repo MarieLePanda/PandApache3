@@ -1,5 +1,6 @@
 ﻿using pandapache.src.LoggingAndMonitoring;
 using System.Text;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src.ResponseGeneration
 {
@@ -26,7 +27,7 @@ namespace pandapache.src.ResponseGeneration
            string fullPath = $"{path}{guidString}-{fileName}";
 
             File.WriteAllText(fullPath, fileData);
-            Logger.LogInfo($"File {fileName} saved correclty to {path}");
+            ExecutionContext.Current.Logger.LogInfo($"File {fileName} saved correclty to {path}");
         }
 
     }

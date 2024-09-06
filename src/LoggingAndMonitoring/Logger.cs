@@ -18,7 +18,8 @@ namespace pandapache.src.LoggingAndMonitoring
         private int maxBufferSize = 100;
         private ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
         private SortedList<DateTime, LogEntry> _logsHistory = new SortedList<DateTime, LogEntry>();
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private static readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private static Logger _instance;
         private int logCount = 0;        
         public bool hold = true;
 
@@ -35,7 +36,7 @@ namespace pandapache.src.LoggingAndMonitoring
                 {
                     if (_instance == null)
                     {
-                        _instance = new SingletonLogger();
+                        _instance = new Logger();
                     }
                     return _instance;
                 }
@@ -55,44 +56,44 @@ namespace pandapache.src.LoggingAndMonitoring
         }
         public void GetReady()
         {
-            Logger.logDirectory = ServerConfiguration.Instance.LogFolder;
-            Logger.logFileName = ServerConfiguration.Instance.LogFile;
-            Logger.maxLogFiles = ServerConfiguration.Instance.MaxLogFile;
-            Logger.maxSizeFile = ServerConfiguration.Instance.SizeLogFile;
-            Logger.logLevel = ServerConfiguration.Instance.LogLevel;
+            logDirectory = ServerConfiguration.Instance.LogFolder;
+            logFileName = ServerConfiguration.Instance.LogFile;
+            maxLogFiles = ServerConfiguration.Instance.MaxLogFile;
+            maxSizeFile = ServerConfiguration.Instance.SizeLogFile;
+            logLevel = ServerConfiguration.Instance.LogLevel;
         }
 
-        public void LogDebug(string message)
+        public void LogDebug(string message, string module="default")
         {
             if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
-                preLog("DEBUG",message);
+                preLog("DEBUG",message, module);
         }
 
-        public void LogInfo(string message)
+        public void LogInfo(string message, string module="default")
         {
             if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
-                preLog("INFO", message);
+                preLog("INFO", message, module);
         }
 
-        public void LogWarning(string message)
+        public void LogWarning(string message, string module="default")
         {
             if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
-                preLog("WARNING", message);
+                preLog("WARNING", message, module);
 
         }
 
-        public void LogError(string message)
+        public void LogError(string message, string module="default")
         {
             if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
-                preLog("ERROR", message);
+                preLog("ERROR", message, module);
 
         }
 
-        private void preLog(string level, string message)
+        public void preLog(string level, string message, string module)
         {
             DateTime timestamp = DateTime.Now;
             Thread currentThread = Thread.CurrentThread;
-            string log = $"{timestamp} - Thread ID: {currentThread.ManagedThreadId} - [{level}] - {message}";
+            string log = $"{timestamp} - MODULE: {module} - Thread ID: {currentThread.ManagedThreadId} - [{level}] - {message}";
 
             logs.Enqueue(log);
             LogEntry logEntry = new LogEntry(timestamp, log);

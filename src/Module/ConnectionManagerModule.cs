@@ -2,8 +2,8 @@
 using pandapache.src.Configuration;
 using pandapache.src.ConnectionManagement;
 using pandapache.src.ErrorHandling;
-using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
+using PandApache3.src.LoggingAndMonitoring;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Text;
@@ -16,11 +16,14 @@ namespace PandApache3.src.Module
         public TaskFactory TaskFactory { get; }
         public ModuleInfo ModuleInfo { get; set; }
         public ModuleType ModuleType { get; set; }
+        private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
         public CancellationTokenSource _cancellationTokenSource { get; } = new CancellationTokenSource();
         private ConcurrentDictionary<Guid, ISocketWrapper> _clients { get; } = new ConcurrentDictionary<Guid, ISocketWrapper>();
         private ConcurrentDictionary<Guid, ISocketWrapper> _clientsRejected = new ConcurrentDictionary<Guid, ISocketWrapper>();
         private Func<HttpContext, Task> _pipeline;
         private TaskScheduler _taskScheduler; 
+
+
         private int _retry = 3;
         public ConnectionManagerModule(ModuleType moduleType, Func<HttpContext, Task> pipeline, TaskScheduler taskScheduler)
         {
@@ -41,17 +44,22 @@ namespace PandApache3.src.Module
 
             if (!moduleInfoExist)
             {
-                ModuleInfo defaultInfo = new ModuleInfo(ModuleType.ToString())
+                ModuleInfo = new ModuleInfo(ModuleType.ToString())
                 {
                     isEnable = true,
                 };
             }
 
+            ModuleInfo.Logger = new VirtualLogger(moduleType.ToString(), "info");
+
+
+
         }
 
         public async Task StartAsync()
         {
-            Logger.LogInfo("Starting Connection manager module");
+            ExecutionContext.Current = ModuleInfo;
+            ExecutionContext.Current.Logger.LogInfo("Starting Connection manager module");
 
             Server.Instance.CancellationTokens.Add(ModuleInfo.Name, _cancellationTokenSource);
 
@@ -61,35 +69,38 @@ namespace PandApache3.src.Module
                 if (ModuleType.Equals(ModuleType.Admin))
                 {
                     Listener = new TcpListener(ServerConfiguration.Instance.ServerIP, ServerConfiguration.Instance.AdminPort);
-                    Logger.LogInfo($"Admin server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.AdminPort}");
+                    ExecutionContext.Current.Logger.LogInfo($"Admin server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.AdminPort}");
 
                 }
                 else
                 {
                     Listener = new TcpListener(ServerConfiguration.Instance.ServerIP, ServerConfiguration.Instance.ServerPort);
-                    Logger.LogInfo($"Web server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.ServerPort}");
+                    ExecutionContext.Current.Logger.LogInfo($"Web server listening on {ServerConfiguration.Instance.ServerIP}:{ServerConfiguration.Instance.ServerPort}");
                 }
 
                 Listener.Start();
             }
             catch (SocketException ex)
             {
-                Logger.LogError($"Error, port not available: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"Error, port not available: {ex.Message}");
 
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Error starting the server: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"Error starting the server: {ex.Message}");
 
             }
         }
 
         public async Task RunAsync()
         {
-            Logger.LogInfo("Running Connection manager module");
+            ExecutionContext.Current = ModuleInfo;
+
+            ExecutionContext.Current.Logger.LogInfo("Running Connection manager module");
 
             Thread currentThread = Thread.CurrentThread;
-            Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) run the function RunServerAsync");
+            ExecutionContext.Current.Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) run the function RunServerAsync");
+
             do
             {
                 try
@@ -102,34 +113,36 @@ namespace PandApache3.src.Module
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError($"Error with Listener pending: {e.Message}");
+                    ExecutionContext.Current.Logger.LogError($"Error with Listener pending: {e.Message}");
                     Thread.Sleep(1000 * _retry);
                     _retry++;
-                    Logger.LogError($"Cancelation token status: {Server.Instance.CancellationTokens[ModuleInfo.Name].Token.IsCancellationRequested}");
+                    ExecutionContext.Current.Logger.LogError($"Cancelation token status: {Server.Instance.CancellationTokens[ModuleInfo.Name].Token.IsCancellationRequested}");
                 }
 
 
             } while (Server.Instance.CancellationTokens[ModuleInfo.Name].Token.IsCancellationRequested == false);
 
-            Logger.LogWarning($"Task {currentThread.ManagedThreadId} run server exited");
+            ExecutionContext.Current.Logger.LogWarning($"Task {currentThread.ManagedThreadId} run server exited");
         }
 
         public async Task StopAsync()
         {
-            Logger.LogInfo("Stopping Connection manager module");
+            ExecutionContext.Current = ModuleInfo;
+
+            ExecutionContext.Current.Logger.LogInfo("Stopping Connection manager module");
 
             try
             {
                 int retry = 5;
                 Listener.Stop();
-                Logger.LogInfo("TCP listener stopped.");
+                ExecutionContext.Current.Logger.LogInfo("TCP listener stopped.");
 
                 for (int i = 0; i < retry; retry--)
                 {
                     if (_clients.Count > 0)
                     {
                         Thread.Sleep(1000);
-                        Logger.LogDebug("There are still active connections...");
+                        ExecutionContext.Current.Logger.LogDebug("There are still active connections...");
                     }
                     else
                     {
@@ -138,17 +151,17 @@ namespace PandApache3.src.Module
                 }
                 if (retry == 0)
                 {
-                    Logger.LogInfo("Force connection to close...");
+                    ExecutionContext.Current.Logger.LogInfo("Force connection to close...");
                     foreach (var clientGuid in _clients.Keys)
                     {
                         _clients[clientGuid].Dispose();
                     }
                 }
-                Logger.LogInfo("No more connection");
+                ExecutionContext.Current.Logger.LogInfo("No more connection");
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Error stopping the TCP listener: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"Error stopping the TCP listener: {ex.Message}");
             }
 
 
@@ -164,7 +177,7 @@ namespace PandApache3.src.Module
                     Guid clientId = Guid.NewGuid();
                     _clients.TryAdd(clientId, client);
 
-                    Logger.LogInfo($"Client connected");
+                    ExecutionContext.Current.Logger.LogInfo($"Client connected");
 
                     // Handle client in a separate thread
                     TaskFactory.StartNew(() => HandleClientAsync(client, clientId));
@@ -176,14 +189,14 @@ namespace PandApache3.src.Module
                     Guid clientId = Guid.NewGuid();
                     _clientsRejected.TryAdd(clientId, client);
 
-                    Logger.LogWarning("Too many connections - rejecting with HTTP 500");
+                    ExecutionContext.Current.Logger.LogWarning("Too many connections - rejecting with HTTP 500");
 
                     TaskFactory.StartNew(() => HandleClientRejectAsync(client, clientId));
 
                 }
                 else
                 {
-                    Logger.LogError("Too many connection");
+                    ExecutionContext.Current.Logger.LogError("Too many connection");
                     client.Dispose();
 
                     return;
@@ -191,7 +204,7 @@ namespace PandApache3.src.Module
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Error accepting client connection: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"Error accepting client connection: {ex.Message}");
 
             }
         }
@@ -201,7 +214,7 @@ namespace PandApache3.src.Module
             try
             {
                 Thread currentThread = Thread.CurrentThread;
-                Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) HandleClientAsync function");
+                ExecutionContext.Current.Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) HandleClientAsync function");
 
                 var taskParsing = TaskFactory.StartNew(() => ConnectionUtils.ParseRequestAsync(client)).Unwrap();
                 Request request = await taskParsing;
@@ -228,13 +241,13 @@ namespace PandApache3.src.Module
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(ex.Message))
                 };
                 await ConnectionUtils.SendResponseAsync(client, errorResponse, null);
-                Logger.LogError($"Error handling client: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"Error handling client: {ex.Message}");
 
             }
             finally
             {
                 client.Dispose();
-                Logger.LogInfo(" client Closed");
+                ExecutionContext.Current.Logger.LogInfo(" client Closed");
 
             }
 
@@ -258,12 +271,12 @@ namespace PandApache3.src.Module
                 };
                 await ConnectionUtils.SendResponseAsync(client, errorResponse, null);
 
-                Logger.LogError($"Error handling client: {ex.Message}");
+                ExecutionContext.Current.Logger.LogError($"Error handling client: {ex.Message}");
             }
             finally
             {
                 client.Dispose();
-                Logger.LogInfo(" client Closed");
+                ExecutionContext.Current.Logger.LogInfo(" client Closed");
 
             }
         }
@@ -273,5 +286,9 @@ namespace PandApache3.src.Module
             return ModuleInfo.isEnable;
         }
 
+        VirtualLogger IModule.Logger()
+        {
+            return null;
+        }
     }
 }

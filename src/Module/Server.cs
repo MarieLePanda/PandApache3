@@ -4,6 +4,7 @@ using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.Middleware;
 using pandapache.src.RequestHandling;
 using pandapache.src.ResponseGeneration;
+using PandApache3.src.LoggingAndMonitoring;
 using PandApache3.src.Middleware;
 using PandApache3.src.ResponseGeneration;
 using System.Diagnostics;
@@ -19,8 +20,12 @@ namespace PandApache3.src.Module
         public Dictionary<string, Func<HttpContext, Task>> Pipelines = new Dictionary<string, Func<HttpContext, Task>>();
         public Dictionary<string, CancellationTokenSource> CancellationTokens = new Dictionary<string, CancellationTokenSource>();
         public readonly CancellationTokenSource CancellationTokenSource;
+        private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
+        public ModuleInfo ModuleInfo;
         public IFileManager fileManager;
+        public VirtualLogger Logger { get; }
         private static Server _instance;
+
 
         private int _retry = 1;
         private readonly object _lock = new object();
@@ -28,6 +33,10 @@ namespace PandApache3.src.Module
         {
             Status = "PandApache3 is stopped";
             CancellationTokenSource = new CancellationTokenSource();
+            ModuleInfo = new ModuleInfo("Server")
+            {
+                Logger = new VirtualLogger("Server", "info")
+            };
         }
 
 
@@ -48,7 +57,8 @@ namespace PandApache3.src.Module
 
         public void Init()
         {
-         
+            ExecutionContext.Current = ModuleInfo;
+
             //Clean previous list in case of restart
             Pipelines.Clear();
             Modules.Clear();
@@ -93,7 +103,7 @@ namespace PandApache3.src.Module
             {
                 if (!Modules[moduleKey].isEnable())
                 {
-                    Logger.LogWarning($"Module {moduleKey} disabled");
+                    ExecutionContext.Current.Logger.LogWarning($"Module {moduleKey} disabled");
                     Modules.Remove(moduleKey);
                 }
             }
@@ -101,8 +111,10 @@ namespace PandApache3.src.Module
 
         public async Task StartAsync()
         {
+            ExecutionContext.Current = ModuleInfo;
+
             Status = "PandApache3 is starting";
-            Logger.LogInfo($"{Status}");
+            ExecutionContext.Current.Logger.LogInfo($"{Status}");
 
             CancelModuleToken();
 
@@ -116,8 +128,10 @@ namespace PandApache3.src.Module
 
         public async Task RunAsync()
         {
+            ExecutionContext.Current = ModuleInfo;
+
             Status = "PandApache3 is up and running!";
-            Logger.LogInfo($"{Status}");
+            ExecutionContext.Current.Logger.LogInfo($"{Status}");
             List<Task> tasks = new List<Task>();
             foreach (var moduleName in Modules.Keys)
             {
@@ -130,21 +144,23 @@ namespace PandApache3.src.Module
 
         public async Task StoppAsync(bool isRestart=false)
         {
+            ExecutionContext.Current = ModuleInfo;
+
             if (!Monitor.TryEnter(_lock))
             {
-                Logger.LogDebug($"Thread (Thread ID: {Thread.CurrentThread.ManagedThreadId}) could not acquire the lock and will exit.");
-                Logger.LogInfo("Server is already stopping");
+                ExecutionContext.Current.Logger.LogDebug($"Thread (Thread ID: {Thread.CurrentThread.ManagedThreadId}) could not acquire the lock and will exit.");
+                ExecutionContext.Current.Logger.LogInfo("Server is already stopping");
                 return;
             }
 
             lock (_lock)
             {
                 Thread currentThread = Thread.CurrentThread;
-                Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) run the function StopServerAsync");
+                ExecutionContext.Current.Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) run the function StopServerAsync");
 
 
                 Status = "PandApache3 is stopping";
-                Logger.LogInfo($"{Status}");
+                ExecutionContext.Current.Logger.LogInfo($"{Status}");
 
                 CancelModuleToken();
 
@@ -157,12 +173,12 @@ namespace PandApache3.src.Module
 
 
                 Status = "PandApache3 is stopped";
-                Logger.LogInfo($"{Status}");
+                ExecutionContext.Current.Logger.LogInfo($"{Status}");
 
                 if (isRestart == false)
                 {
                     CancellationTokenSource.Cancel();
-                    Logger.LogInfo($"Token server: {CancellationTokenSource.Token} canceled");
+                    ExecutionContext.Current.Logger.LogInfo($"Token server: {CancellationTokenSource.Token} canceled");
 
                 }
             }
@@ -182,7 +198,7 @@ namespace PandApache3.src.Module
                 }
                 else
                 {
-                    Logger.LogInfo($"Cancel previous {tokenName} token: {CancellationTokens[tokenName].Token}");
+                    ExecutionContext.Current.Logger.LogInfo($"Cancel previous {tokenName} token: {CancellationTokens[tokenName].Token}");
                     CancellationTokens[tokenName].Cancel();
                 }
             }

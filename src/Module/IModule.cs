@@ -1,4 +1,5 @@
 ﻿using pandapache.src.RequestHandling;
+using PandApache3.src.LoggingAndMonitoring;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace PandApache3.src.Module
 
     public interface IModule
     {
+        VirtualLogger Logger();
 
         Task StartAsync();
 

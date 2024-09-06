@@ -128,9 +128,9 @@ namespace PandApache3.src.LoggingAndMonitoring
             }
             catch { }
 
-            Logger.LogInfo($"Memory used: {memoryInformation["TotalUsedMemorySize"] / 1024 / 1024} Go");
-            Logger.LogInfo($"Memory free: {memoryInformation["FreePhysicalMemory"] / 1024 / 1024} Go");
-            Logger.LogInfo($"Memory total: {memoryInformation["TotalVisibleMemorySize"] / 1024 / 1024} Go");
+            //Logger.LogInfo($"Memory used: {memoryInformation["TotalUsedMemorySize"] / 1024 / 1024} Go");
+            //Logger.LogInfo($"Memory free: {memoryInformation["FreePhysicalMemory"] / 1024 / 1024} Go");
+            //Logger.LogInfo($"Memory total: {memoryInformation["TotalVisibleMemorySize"] / 1024 / 1024} Go");
 
 
             return memoryInformation;
@@ -139,7 +139,7 @@ namespace PandApache3.src.LoggingAndMonitoring
         public static long GetProcessGC()
         {
             long totalMemory = GC.GetTotalMemory(false);
-            Logger.LogInfo($"total memory allocated (GC) : {totalMemory / 1024 / 1024} Mo");
+            //Logger.LogInfo($"total memory allocated (GC) : {totalMemory / 1024 / 1024} Mo");
             return totalMemory;
 
         }
@@ -148,11 +148,11 @@ namespace PandApache3.src.LoggingAndMonitoring
         {
             Dictionary<string, long> driveInfo = new Dictionary<string, long>();
             DriveInfo drive = new DriveInfo("C");
-            Logger.LogInfo($"Total space : {drive.TotalSize / 1024 / 1024 / 1024} Go");
+            //Logger.LogInfo($"Total space : {drive.TotalSize / 1024 / 1024 / 1024} Go");
             driveInfo.Add("TotalSize", drive.TotalSize);
-            Logger.LogInfo($"Total available free space : {drive.AvailableFreeSpace / 1024 / 1024 / 1024} Go");
+            //Logger.LogInfo($"Total available free space : {drive.AvailableFreeSpace / 1024 / 1024 / 1024} Go");
             driveInfo.Add("AvailableFreeSpace", drive.AvailableFreeSpace);
-            Logger.LogInfo($"Total used space : {(drive.TotalSize - drive.AvailableFreeSpace) / 1024 / 1024 / 1024} Go");
+            //Logger.LogInfo($"Total used space : {(drive.TotalSize - drive.AvailableFreeSpace) / 1024 / 1024 / 1024} Go");
             driveInfo.Add("UsedSpace", (drive.TotalSize - drive.AvailableFreeSpace));
 
             return driveInfo;
@@ -207,7 +207,7 @@ namespace PandApache3.src.LoggingAndMonitoring
         private static string RunPowerShelCommand(string cmdlet)
         {
             string result = string.Empty;
-            Logger.LogInfo($"Command executed on the server: {cmdlet}");
+            //Logger.LogInfo($"Command executed on the server: {cmdlet}");
             try
             {
                 ProcessStartInfo psi = new ProcessStartInfo
@@ -231,7 +231,7 @@ namespace PandApache3.src.LoggingAndMonitoring
             {
             }
 
-            Logger.LogInfo(result);
+            //Logger.LogInfo(result);
             return result;
         }
     }
