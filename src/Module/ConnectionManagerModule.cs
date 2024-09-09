@@ -39,6 +39,7 @@ namespace PandApache3.src.Module
                 {
                     moduleInfoExist = true;
                     ModuleInfo = moduleInfo;
+                    break;
                 }
             }
 
@@ -50,7 +51,6 @@ namespace PandApache3.src.Module
                 };
             }
 
-            ModuleInfo.Logger = new VirtualLogger(moduleType.ToString(), "info");
 
 
 

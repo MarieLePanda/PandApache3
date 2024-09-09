@@ -2,8 +2,8 @@
 using PandApache3.src.LoggingAndMonitoring;
 using PandApache3.src.Module;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src.LoggingAndMonitoring
 {
@@ -14,7 +14,7 @@ namespace pandapache.src.LoggingAndMonitoring
         private string logFileName;
         private int maxLogFiles;
         private int maxSizeFile;
-        private string logLevel;
+        //private string logLevel;
         private int maxBufferSize = 100;
         private ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
         private SortedList<DateTime, LogEntry> _logsHistory = new SortedList<DateTime, LogEntry>();
@@ -60,31 +60,31 @@ namespace pandapache.src.LoggingAndMonitoring
             logFileName = ServerConfiguration.Instance.LogFile;
             maxLogFiles = ServerConfiguration.Instance.MaxLogFile;
             maxSizeFile = ServerConfiguration.Instance.SizeLogFile;
-            logLevel = ServerConfiguration.Instance.LogLevel;
+            //logLevel = ServerConfiguration.Instance.LogLevel;
         }
 
         public void LogDebug(string message, string module="default")
         {
-            if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
+//            if (new List<string> {"debug"}.Contains(ExecutionContext.Current.Logger.LogLevel))
                 preLog("DEBUG",message, module);
         }
 
         public void LogInfo(string message, string module="default")
         {
-            if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
+//            if (new List<string> { "debug", "info" }.Contains(ExecutionContext.Current.Logger.LogLevel))
                 preLog("INFO", message, module);
         }
 
         public void LogWarning(string message, string module="default")
         {
-            if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
+//            if (new List<string> { "debug", "info", "warning" }.Contains(ExecutionContext.Current.Logger.LogLevel))
                 preLog("WARNING", message, module);
 
         }
 
         public void LogError(string message, string module="default")
         {
-            if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
+//            if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ExecutionContext.Current.Logger.LogLevel))
                 preLog("ERROR", message, module);
 
         }

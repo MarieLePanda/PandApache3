@@ -329,6 +329,7 @@ namespace pandapache.src.Configuration
                 ["authuserfile"] = v => Directories.Last().AuthUserFile = v,
                 ["require"] = v => Directories.Last().Require = v,
                 ["enable"] = v => TrySetBoolValue(v, val => Modules.Last().isEnable = val, "enable value invalid"),
+                ["moduleloglevel"] = v => Modules.Last().Logger.LogLevel = v
 
 
             };

@@ -23,7 +23,6 @@ namespace PandApache3.src.Module
         private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
         public ModuleInfo ModuleInfo;
         public IFileManager fileManager;
-        public VirtualLogger Logger { get; }
         private static Server _instance;
 
 
@@ -33,10 +32,7 @@ namespace PandApache3.src.Module
         {
             Status = "PandApache3 is stopped";
             CancellationTokenSource = new CancellationTokenSource();
-            ModuleInfo = new ModuleInfo("Server")
-            {
-                Logger = new VirtualLogger("Server", "info")
-            };
+            ModuleInfo = new ModuleInfo("Server");
         }
 
 
@@ -183,7 +179,7 @@ namespace PandApache3.src.Module
                 }
             }
 
-            Logger.LogDebug("Get out of the lock");
+            ExecutionContext.Current.Logger.LogDebug("Get out of the lock");
             Monitor.Exit(_lock);
         }
 

@@ -1,4 +1,5 @@
-﻿using PandApache3.src.LoggingAndMonitoring;
+﻿using pandapache.src.Configuration;
+using PandApache3.src.LoggingAndMonitoring;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace PandApache3.src.Module
             if (Enum.TryParse(name, true, out ModuleType moduleType))
             {
                 Type = moduleType;
+                Logger = new VirtualLogger(name);
             }
             else
             {
