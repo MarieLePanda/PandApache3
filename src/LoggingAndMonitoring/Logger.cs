@@ -93,7 +93,8 @@ namespace pandapache.src.LoggingAndMonitoring
         {
             DateTime timestamp = DateTime.Now;
             Thread currentThread = Thread.CurrentThread;
-            string log = $"{timestamp} - MODULE: {module} - Thread ID: {currentThread.ManagedThreadId} - [{level}] - {message}";
+            level = $"[{level}]";
+            string log = $"{timestamp,-20} - Module: {module,-10} - Thread ID: {currentThread.ManagedThreadId,-2} - {level,-10} - {message}";
 
             logs.Enqueue(log);
             LogEntry logEntry = new LogEntry(timestamp, log);
