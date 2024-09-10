@@ -11,8 +11,6 @@ namespace PandApache3.src.Module
 
     public interface IModule
     {
-        VirtualLogger Logger();
-
         Task StartAsync();
 
         Task RunAsync();

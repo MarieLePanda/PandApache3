@@ -8,9 +8,9 @@ namespace PandApache3.src.Module
 {
     public static class ExecutionContext
     {
-        private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
+        private static AsyncLocal<ModuleConfiguration> _current = new AsyncLocal<ModuleConfiguration>();
 
-        public static ModuleInfo Current
+        public static ModuleConfiguration Current
         {
             get => _current.Value;
             set => _current.Value = value;

@@ -1,15 +1,9 @@
 ﻿using pandapache.src.Configuration;
-using pandapache.src.ConnectionManagement;
-using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.Middleware;
 using pandapache.src.RequestHandling;
 using pandapache.src.ResponseGeneration;
-using PandApache3.src.LoggingAndMonitoring;
 using PandApache3.src.Middleware;
 using PandApache3.src.ResponseGeneration;
-using System.Diagnostics;
-using System.Threading;
-
 
 namespace PandApache3.src.Module
 {
@@ -20,8 +14,8 @@ namespace PandApache3.src.Module
         public Dictionary<string, Func<HttpContext, Task>> Pipelines = new Dictionary<string, Func<HttpContext, Task>>();
         public Dictionary<string, CancellationTokenSource> CancellationTokens = new Dictionary<string, CancellationTokenSource>();
         public readonly CancellationTokenSource CancellationTokenSource;
-        private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
-        public ModuleInfo ModuleInfo;
+        private static AsyncLocal<ModuleConfiguration> _current = new AsyncLocal<ModuleConfiguration>();
+        public ModuleConfiguration ModuleInfo;
         public IFileManager fileManager;
         private static Server _instance;
 
@@ -32,7 +26,7 @@ namespace PandApache3.src.Module
         {
             Status = "PandApache3 is stopped";
             CancellationTokenSource = new CancellationTokenSource();
-            ModuleInfo = new ModuleInfo("Server");
+            ModuleInfo = new ModuleConfiguration("Server");
         }
 
 
@@ -54,6 +48,8 @@ namespace PandApache3.src.Module
         public void Init()
         {
             ExecutionContext.Current = ModuleInfo;
+            //ModuleInfo.Logger.LogLevel = ServerConfiguration.Instance.LogLevel;
+            //ModuleInfo.Logger.LogLevel = ServerConfiguration.Instance.LogLevel;
 
             //Clean previous list in case of restart
             Pipelines.Clear();

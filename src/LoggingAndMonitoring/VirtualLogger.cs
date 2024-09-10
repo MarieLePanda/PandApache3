@@ -8,42 +8,57 @@ using System.Threading.Tasks;
 
 namespace PandApache3.src.LoggingAndMonitoring
 {
-    public class VirtualLogger
+    public class VirtualLogger : ILogger
     {
         //private Logger _singletonLogger;
         private string _moduleName;
         public string LogLevel;
+        public string LogFile;
 
-        public VirtualLogger(string moduleName, string logLevel="info")
+        public VirtualLogger(string moduleName)
         {
             _moduleName = moduleName;
-            LogLevel = logLevel;
+            LogLevel = ServerConfiguration.Instance.LogLevel;
+            LogFile = ServerConfiguration.Instance.LogFile;
         }
 
-        public void LogDebug(string message)
+        public void LogDebug(string message, string moduleName="default")
         {
+            moduleName = _moduleName;
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "DEBUG");
             if (new List<string> { "debug" }.Contains(LogLevel))
-                Logger.Instance.preLog("DEBUG", message, _moduleName);
+                Logger.Instance.preLog(logEntry);
         }
 
-        public void LogInfo(string message)
+        public void LogInfo(string message, string moduleName = "default")
         {
+            moduleName = _moduleName;
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "INFO");
             if (new List<string> { "debug", "info" }.Contains(LogLevel))
-                Logger.Instance.preLog("INFO", message, _moduleName);
+                Logger.Instance.preLog(logEntry);
         }
 
-        public void LogWarning(string message)
+        public void LogWarning(string message, string moduleName = "default")
         {
+            moduleName = _moduleName;
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "WARNING");
             if (new List<string> { "debug", "info", "warning" }.Contains(LogLevel))
-                Logger.Instance.preLog("WARNING", message, _moduleName);
+                Logger.Instance.preLog(logEntry);
 
         }
 
-        public void LogError(string message)
+        public void LogError(string message, string moduleName = "default")
         {
+            moduleName = _moduleName;
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "ERROR");
             if (new List<string> { "debug", "info", "warning", "error" }.Contains(LogLevel))
-                Logger.Instance.preLog("ERROR", message, _moduleName);
+                Logger.Instance.preLog(logEntry);
 
+        }
+
+        public void preLog(LogEntry logEntry)
+        {
+            throw new NotImplementedException();
         }
     }
 }

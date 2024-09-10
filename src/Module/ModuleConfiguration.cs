@@ -8,15 +8,16 @@ using System.Threading.Tasks;
 
 namespace PandApache3.src.Module
 {
-    public class ModuleInfo
+    public class ModuleConfiguration
     {
+        private TaskScheduler _taskScheduler;
         public ModuleType Type;
         public string Name;
         public bool isEnable;
-        public TaskScheduler TaskScheduler;
+        public TaskFactory TaskFactory { get; }
         public VirtualLogger Logger;
 
-        public ModuleInfo(string name)
+        public ModuleConfiguration(string name)
         {
             // Assigne le nom du module
             Name = name;

@@ -20,6 +20,7 @@ class Startup
 
     static async Task Main(string[] args)
     {
+        Logger logger = (Logger)Logger.Instance;
         Server PandApache3 = Server.Instance;
 
         while (PandApache3.CancellationTokenSource.IsCancellationRequested == false)
@@ -59,9 +60,9 @@ class Startup
             PandApache3.Init();
             PandApache3.StartAsync();
             
-            Logger.Instance.LogInfo(banner);
-            Logger.Instance.GetReady();
-            Logger.Instance.flushLog();
+            logger.LogInfo(banner);
+            logger.GetReady();
+            logger.flushLog();
             
             PROCESSID = Process.GetCurrentProcess().Id;
             PROCESSNAME = Process.GetCurrentProcess().ProcessName;
@@ -72,8 +73,8 @@ class Startup
 
         }
 
-        Logger.Instance.LogInfo("La revedere !");
-        Logger.Instance.flushLog();
+        logger.LogInfo("La revedere !");
+        logger.flushLog();
     }
 
 

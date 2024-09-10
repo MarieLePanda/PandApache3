@@ -119,7 +119,7 @@ namespace pandapache.src.Middleware
             {
                 StringBuilder logs = new StringBuilder();
 
-                foreach(var logEntry in Logger.Instance.GetLogHistory())
+                foreach(var logEntry in ((Logger) Logger.Instance).GetLogHistory())
                 {
                     logs.Append(logEntry.Message + "\n");
                 }

@@ -4,14 +4,17 @@ using Newtonsoft.Json;
 using PandApache3.src.Module;
 using PandApache3.src.LoggingAndMonitoring;
 using ExecutionContext = PandApache3.src.Module.ExecutionContext;
+using pandapache.src.LoggingAndMonitoring;
 
 namespace pandapache.src.Configuration
 {
     public class ServerConfiguration : IServerConfiguration
     {
+        public ILogger ConfigLogger { get; set; } 
         private FileSystemWatcher fileWatcher;
         private static ServerConfiguration instance;
         private static readonly object lockObject = new object();
+
         public string _configurationPath { get; set; }
 
         //General configuration
@@ -54,7 +57,7 @@ namespace pandapache.src.Configuration
         //Other
         public string Platform{ get; set; }
         public List<DirectoryConfig> Directories { get; set; } = new List<DirectoryConfig>();
-        public List<ModuleInfo> Modules { get; set; } = new List<ModuleInfo>();
+        public List<ModuleConfiguration> Modules { get; set; } = new List<ModuleConfiguration>();
 
         public static ServerConfiguration Instance
         {
@@ -94,7 +97,9 @@ namespace pandapache.src.Configuration
                                 throw new Exception("Operating system not supported");
                             }
 
+
                             instance.ReloadConfiguration();
+                            instance.ConfigLogger = new VirtualLogger("Configuration");
 
                         }
                     }
@@ -105,7 +110,7 @@ namespace pandapache.src.Configuration
 
         private ServerConfiguration() 
         {
-
+            ConfigLogger = Logger.Instance;
             //To fix
             if (File.Exists(_configurationPath))
             {
@@ -139,8 +144,8 @@ namespace pandapache.src.Configuration
 
                 List<string> currentSection = new List<string>();
                 DirectoryConfig currentDirectory = null;
-                ModuleInfo currentModule = null;
-                ExecutionContext.Current.Logger.LogDebug("Reading the configuration file line by line");
+                ModuleConfiguration currentModule = null;
+                ConfigLogger.LogDebug("Reading the configuration file line by line");
                 foreach (var line in File.ReadLines(fullPath))
                 {
                     // Ignorer les lignes vides et les commentaires
@@ -149,9 +154,9 @@ namespace pandapache.src.Configuration
 
                     if (line.Trim().StartsWith("<") && line.Trim().EndsWith(">") && line.Trim().StartsWith("</") == false)
                     {
-                        ExecutionContext.Current.Logger.LogDebug($"Starting to read new directive {line.Trim()}");
+                        ConfigLogger.LogDebug($"Starting to read new directive {line.Trim()}");
                         string sectionName = line.Trim().Substring(1, line.Trim().Length - 2);
-                        ExecutionContext.Current.Logger.LogInfo($"Reading section {sectionName}");
+                        ConfigLogger.LogInfo($"Reading section {sectionName}");
 
                         if ((sectionName.StartsWith("Directory") || sectionName.StartsWith("Admin")) && currentDirectory == null)
                         {
@@ -163,9 +168,9 @@ namespace pandapache.src.Configuration
 
                             currentSection.Add(type);
 
-                            ExecutionContext.Current.Logger.LogDebug($"Section name: {sectionName}");
-                            ExecutionContext.Current.Logger.LogDebug($"sectionName.Split(' ')[0]: {sectionName.Split(' ')[0]}");
-                            ExecutionContext.Current.Logger.LogDebug($"sectionName.Split(' ')[1]: {sectionName.Split(' ')[1]}");
+                            ConfigLogger.LogDebug($"Section name: {sectionName}");
+                            ConfigLogger.LogDebug($"sectionName.Split(' ')[0]: {sectionName.Split(' ')[0]}");
+                            ConfigLogger.LogDebug($"sectionName.Split(' ')[1]: {sectionName.Split(' ')[1]}");
 
                             currentDirectory = new DirectoryConfig
                             {
@@ -173,14 +178,14 @@ namespace pandapache.src.Configuration
                                 Path = sectionName.Split(' ')[1]
                             };
                             Directories.Add(currentDirectory);
-                            ExecutionContext.Current.Logger.LogDebug($"Directories: {Directories}");
+                            ConfigLogger.LogDebug($"Directories: {Directories}");
 
                             if(sectionName.StartsWith("Admin"))
                                     currentSection.Add("Admin");
                             else
                                 currentSection.Add("Directory");
 
-                            ExecutionContext.Current.Logger.LogDebug($"Section added: {sectionName}");
+                            ConfigLogger.LogDebug($"Section added: {sectionName}");
                         }
                         else if (sectionName.StartsWith("LimitVerb") && currentDirectory.AllowedMethods == null)
                         {
@@ -188,7 +193,7 @@ namespace pandapache.src.Configuration
                             currentSection.Add("LimitVerb");
                             
                             currentDirectory.AllowedMethods = new List<string>();
-                            ExecutionContext.Current.Logger.LogDebug($"Section added: {sectionName}");
+                            ConfigLogger.LogDebug($"Section added: {sectionName}");
                             continue;
                         }
                         else if (sectionName.StartsWith("Module") && currentModule == null)
@@ -196,7 +201,7 @@ namespace pandapache.src.Configuration
                             currentSection.Add("Module");
                             string moduleName = sectionName.Split(' ')[1];
 
-                            currentModule = new ModuleInfo(moduleName);
+                            currentModule = new ModuleConfiguration(moduleName);
                             Modules.Add(currentModule);
 
                             continue;
@@ -213,7 +218,7 @@ namespace pandapache.src.Configuration
                             
                             currentDirectory = null;
                             currentSection.Remove("Directory");
-                            ExecutionContext.Current.Logger.LogDebug($"Section end: Directory");
+                            ConfigLogger.LogDebug($"Section end: Directory");
 
                             continue;
                         }
@@ -221,7 +226,7 @@ namespace pandapache.src.Configuration
                         {
                             currentDirectory = null;
                             currentSection.Remove("Admin");
-                            ExecutionContext.Current.Logger.LogDebug($"Section end: Admin");
+                            ConfigLogger.LogDebug($"Section end: Admin");
 
                             continue;
                         }
@@ -229,7 +234,7 @@ namespace pandapache.src.Configuration
                         {
                             currentModule = null;
                             currentSection.Remove("Module");
-                            ExecutionContext.Current.Logger.LogDebug($"Section end: Module");
+                            ConfigLogger.LogDebug($"Section end: Module");
 
                             continue;
                         }
@@ -241,7 +246,7 @@ namespace pandapache.src.Configuration
                         else if (currentDirectory != null && line.Trim() == "</LimitVerb>")
                         {
                             currentSection.Remove("LimitVerb");
-                            ExecutionContext.Current.Logger.LogDebug($"Section end: LimitVerb");
+                            ConfigLogger.LogDebug($"Section end: LimitVerb");
 
                             //currentDirectory.AllowedMethods = allowedMethods;
                             //allowedMethods = new List<string>();
@@ -251,7 +256,7 @@ namespace pandapache.src.Configuration
                         else if(currentDirectory != null && currentSection.Last().Equals("LimitVerb"))
                         {
                             currentDirectory.AllowedMethods.Add(line.Trim());
-                            ExecutionContext.Current.Logger.LogDebug($"Allow method: {line.Trim()}");
+                            ConfigLogger.LogDebug($"Allow method: {line.Trim()}");
 
                         }
 
@@ -266,7 +271,7 @@ namespace pandapache.src.Configuration
 
                 LoadAdminDirectory();
 
-                 ExecutionContext.Current.Logger.LogInfo("Configuration reloaded");
+                 ConfigLogger.LogInfo("Configuration reloaded");
             }
             catch (Exception ex)
             {
@@ -285,7 +290,7 @@ namespace pandapache.src.Configuration
                     AdminDirectory = directory;
                     AdminDirectory.Path = directory.Path;
                     AdminDirectory.URL = "/" + Path.GetFileName(Path.GetDirectoryName(directory.Path));
-                     ExecutionContext.Current.Logger.LogInfo($"Admin directory: {AdminDirectory.Path}");
+                     ConfigLogger.LogInfo($"Admin directory: {AdminDirectory.Path}");
                     return;
                 }
 
@@ -301,7 +306,7 @@ namespace pandapache.src.Configuration
                     if (IPAddress.TryParse(v, out var parsedIPAddress))
                         ServerIP = parsedIPAddress;
                     else
-                        ExecutionContext.Current.Logger.LogWarning("Server IP invalid");
+                        ConfigLogger.LogWarning("Server IP invalid");
                 },
                 ["serverport"] = v => TrySetIntValue(v, val => ServerPort = val, "Server port invalid"),
                 ["adminport"] = v => TrySetIntValue(v, val => AdminPort = val, "Admin port invalid"),
@@ -329,7 +334,8 @@ namespace pandapache.src.Configuration
                 ["authuserfile"] = v => Directories.Last().AuthUserFile = v,
                 ["require"] = v => Directories.Last().Require = v,
                 ["enable"] = v => TrySetBoolValue(v, val => Modules.Last().isEnable = val, "enable value invalid"),
-                ["moduleloglevel"] = v => Modules.Last().Logger.LogLevel = v
+                ["moduleloglevel"] = v => Modules.Last().Logger.LogLevel = v,
+                ["modulelogfile"] = v => Modules.Last().Logger.LogFile = v
 
 
             };
@@ -340,7 +346,7 @@ namespace pandapache.src.Configuration
             }
             else
             {
-                ExecutionContext.Current.Logger.LogWarning($"Unknown configuration key: {key}");
+                ConfigLogger.LogWarning($"Unknown configuration key: {key}");
             }
         }
 
@@ -352,7 +358,7 @@ namespace pandapache.src.Configuration
             }
             else
             {
-                ExecutionContext.Current.Logger.LogWarning(warningMessage);
+                ConfigLogger.LogWarning(warningMessage);
             }
         }
 
@@ -364,13 +370,13 @@ namespace pandapache.src.Configuration
             }
             else
             {
-                ExecutionContext.Current.Logger.LogWarning(warningMessage);
+                ConfigLogger.LogWarning(warningMessage);
             }
         }
 
         private void getKeyValue(string line)
         {
-            ExecutionContext.Current.Logger.LogDebug($"Key Value: {line}");
+            ConfigLogger.LogDebug($"Key Value: {line}");
 
             var parts = line.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 2)
@@ -386,15 +392,15 @@ namespace pandapache.src.Configuration
         {
             if (fullPath.StartsWith(AdminDirectory.URL))
             {
-                ExecutionContext.Current.Logger.LogDebug($"FilePath: {fullPath}");
-                ExecutionContext.Current.Logger.LogDebug($"AdminDirectoryPath:{AdminDirectory.Path}");
+                ConfigLogger.LogDebug($"FilePath: {fullPath}");
+                ConfigLogger.LogDebug($"AdminDirectoryPath:{AdminDirectory.Path}");
                 return AdminDirectory;
 
             }
             foreach (DirectoryConfig directory in Directories)
             {
-                ExecutionContext.Current.Logger.LogDebug($"FilePath: {fullPath}");
-                ExecutionContext.Current.Logger.LogDebug($"DirectoryPath:{directory.Path}");
+                ConfigLogger.LogDebug($"FilePath: {fullPath}");
+                ConfigLogger.LogDebug($"DirectoryPath:{directory.Path}");
                 if (fullPath.StartsWith(directory.Path, StringComparison.OrdinalIgnoreCase))
                 {
                     return directory;

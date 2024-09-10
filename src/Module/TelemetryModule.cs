@@ -7,13 +7,12 @@ namespace PandApache3.src.Module
     public class TelemetryModule : IModule
     {
         private static TelemetryModule _instance;
-        private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
+        private static AsyncLocal<ModuleConfiguration> _current = new AsyncLocal<ModuleConfiguration>();
 
-        private VirtualLogger Logger;
         private TaskScheduler _taskScheduler;
         public TaskFactory TaskFactory { get; }
         public Telemetry TelemetryCollector { get; set; }
-        public ModuleInfo ModuleInfo { get; set; }
+        public ModuleConfiguration ModuleInfo { get; set; }
         private CancellationTokenSource _cancellationTokenSource;
         public TelemetryModule(TaskScheduler taskScheduler)
         {
@@ -21,10 +20,9 @@ namespace PandApache3.src.Module
             _taskScheduler = taskScheduler;
             _cancellationTokenSource = new CancellationTokenSource();
             TaskFactory = new TaskFactory(_taskScheduler);
-            Logger = new VirtualLogger("TelemetryLogger", "debug");
 
             bool moduleInfoExist = false;
-            foreach (ModuleInfo moduleInfo in ServerConfiguration.Instance.Modules)
+            foreach (ModuleConfiguration moduleInfo in ServerConfiguration.Instance.Modules)
             {
                 if (moduleInfo.Type == ModuleType.Telemetry)
                 {
@@ -35,7 +33,7 @@ namespace PandApache3.src.Module
 
             if (!moduleInfoExist)
             {
-                ModuleInfo = new ModuleInfo("Telemetry")
+                ModuleInfo = new ModuleConfiguration("Telemetry")
                 {
                     isEnable = true,
                 };
@@ -76,9 +74,5 @@ namespace PandApache3.src.Module
             return ModuleInfo.isEnable;
         }
 
-        VirtualLogger IModule.Logger()
-        {
-            return Logger;
-        }
     }
 }

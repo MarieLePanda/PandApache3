@@ -14,9 +14,9 @@ namespace PandApache3.src.Module
     {
         public TcpListener Listener { get; set; }
         public TaskFactory TaskFactory { get; }
-        public ModuleInfo ModuleInfo { get; set; }
+        public ModuleConfiguration ModuleInfo { get; set; }
         public ModuleType ModuleType { get; set; }
-        private static AsyncLocal<ModuleInfo> _current = new AsyncLocal<ModuleInfo>();
+        private static AsyncLocal<ModuleConfiguration> _current = new AsyncLocal<ModuleConfiguration>();
         public CancellationTokenSource _cancellationTokenSource { get; } = new CancellationTokenSource();
         private ConcurrentDictionary<Guid, ISocketWrapper> _clients { get; } = new ConcurrentDictionary<Guid, ISocketWrapper>();
         private ConcurrentDictionary<Guid, ISocketWrapper> _clientsRejected = new ConcurrentDictionary<Guid, ISocketWrapper>();
@@ -33,7 +33,7 @@ namespace PandApache3.src.Module
             TaskFactory = new TaskFactory(_taskScheduler);
 
             bool moduleInfoExist = false;
-            foreach (ModuleInfo moduleInfo in ServerConfiguration.Instance.Modules)
+            foreach (ModuleConfiguration moduleInfo in ServerConfiguration.Instance.Modules)
             {
                 if (moduleInfo.Type == ModuleType)
                 {
@@ -45,7 +45,7 @@ namespace PandApache3.src.Module
 
             if (!moduleInfoExist)
             {
-                ModuleInfo = new ModuleInfo(ModuleType.ToString())
+                ModuleInfo = new ModuleConfiguration(ModuleType.ToString())
                 {
                     isEnable = true,
                 };
@@ -286,9 +286,5 @@ namespace PandApache3.src.Module
             return ModuleInfo.isEnable;
         }
 
-        VirtualLogger IModule.Logger()
-        {
-            return null;
-        }
     }
 }
