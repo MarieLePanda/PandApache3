@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using ExecutionContext = PandApache3.src.Module.ExecutionContext;
+using ExecutionContext = PandApache3.src.Core.Module.ExecutionContext;
 
 
 namespace PandApache3.src
@@ -33,7 +33,7 @@ namespace PandApache3.src
         {
             foreach (var task in _taskQueue.GetConsumingEnumerable())
             {
-                ExecutionContext.Current.Logger.LogInfo($"task {task.Id} in progress for {_scheduleurName}");
+                ExecutionContext.Current.Logger.LogDebug($"task {task.Id} in progress for {_scheduleurName}");
                 TryExecuteTask(task);
             }
         }

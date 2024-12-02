@@ -1,6 +1,7 @@
-﻿using pandapache.src.LoggingAndMonitoring;
-using pandapache.src.RequestHandling;
-using PandApache3.src.Module;
+﻿using PandApache3.src.Core;
+using PandApache3.src.Core.LoggingAndMonitoring;
+using PandApache3.src.Core.RequestHandling;
+using PandApache3.src.Modules.Web;
 using System.Diagnostics;
 
 class Startup
