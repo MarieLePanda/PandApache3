@@ -1,122 +1,210 @@
-﻿using pandapache.src.Configuration;
+﻿using Microsoft.Extensions.Logging;
+using pandapache.src.Configuration;
+using PandApache3.src.LoggingAndMonitoring;
+using PandApache3.src.Module;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src.LoggingAndMonitoring
 {
-    public static class Logger
+    public class Logger : ILogger
     {
 
-        private static string logDirectory;
-        private static string logFileName;
-        private static int maxLogFiles;
-        private static int maxSizeFile;
-        private static string logLevel;
-        private static int maxBufferSize = 100;
-        private static ConcurrentQueue<string> logs = new ConcurrentQueue<string>();
-        public static bool hold = true;
+        private string logDirectory;
+        private string logFileName;
+        private int maxLogFiles;
+        private int maxSizeFile;
+        //private string logLevel;
+        private int maxBufferSize = 100;
+        private ConcurrentQueue<LogEntry> logs = new ConcurrentQueue<LogEntry>();
+        private SortedList<DateTime, LogEntry> _logsHistory = new SortedList<DateTime, LogEntry>();
+        private static readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private static ILogger _instance;
+        private int logCount = 0;        
+        public bool hold = true;
 
+        private Logger()
+        { }
 
-        public static void Initialize()
+        public static ILogger Instance
         {
-            Logger.logDirectory = ServerConfiguration.Instance.LogFolder;
-            Logger.logFileName = ServerConfiguration.Instance.LogFile;
-            Logger.maxLogFiles = ServerConfiguration.Instance.MaxLogFile;
-            Logger.maxSizeFile = ServerConfiguration.Instance.SizeLogFile;
-            Logger.logLevel = ServerConfiguration.Instance.LogLevel;
-        }
-
-        public static void LogDebug(string message)
-        {
-            if (new List<string> {"debug"}.Contains(ServerConfiguration.Instance.LogLevel))
+            get
             {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [DEBUG] - {message}");
+                lock (_lock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new Logger();
+                    }
+                    return _instance;
+                }
             }
         }
-
-        public static void LogInfo(string message)
+        public IEnumerable<LogEntry> GetLogHistory()
         {
-            if (new List<string> { "debug", "info" }.Contains(ServerConfiguration.Instance.LogLevel))
+            _lock.EnterReadLock();
+            try
             {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [INFO] - {message}");
+                return new List<LogEntry>(_logsHistory.Values);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
             }
         }
-
-        public static void LogWarning(string message)
+        public void GetReady()
         {
-            if (new List<string> { "debug", "info", "warning" }.Contains(ServerConfiguration.Instance.LogLevel))
-            {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [WARNING] - {message}");
-            }
+            logDirectory = ServerConfiguration.Instance.LogFolder;
+            logFileName = ServerConfiguration.Instance.LogFile;
+            maxLogFiles = ServerConfiguration.Instance.MaxLogFile;
+            maxSizeFile = ServerConfiguration.Instance.SizeLogFile;
+            //logLevel = ServerConfiguration.Instance.LogLevel;
         }
 
-        public static void LogError(string message)
+        public void LogDebug(string message, string moduleName = "default")
         {
-            if (new List<string> { "debug", "info", "warning", "error"  }.Contains(ServerConfiguration.Instance.LogLevel))
-            {
-                Thread currentThread = Thread.CurrentThread;
-                preLog($"{DateTime.Now} - Thread ID: {currentThread.ManagedThreadId} - [ERROR] - {message}");
-            }
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "DEBUG");
+            preLog(logEntry);
         }
 
-        private static void preLog(string message)
+        public void LogInfo(string message, string moduleName = "default")
         {
-           logs.Enqueue(message);
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "INFO");
+            preLog(logEntry);
+        }
 
-            if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog)
+        public void LogWarning(string message, string moduleName = "default")
+        {
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "WARNING");
+            preLog(logEntry);
+        }
+
+        public void LogError(string message, string moduleName = "default")
+        {
+            LogEntry logEntry = new LogEntry(DateTime.Now, message, moduleName, "ERROR");
+            preLog(logEntry);
+        }
+
+        public void preLog(LogEntry logEntry)
+        {
+            logEntry.ThreadID = Thread.CurrentThread.ManagedThreadId;
+
+
+            logs.Enqueue(logEntry);
+            historyLog(logEntry);
+
+            if (logs.Count >= ServerConfiguration.Instance.MaxBufferLog &&  Server.Instance.Status.Equals("PandApache3 is up and running!"))
                 flushLog();
         }
 
-        public static void flushLog()
+        private void historyLog(LogEntry logEntry)
         {
-            string message = string.Empty;
-            StringBuilder sb = new StringBuilder();
+            if(ServerConfiguration.Instance.MaxHistoryLog <= 0)
+                return;
+
+            _lock.EnterWriteLock();
+            try
+            {
+
+                if (logCount >= ServerConfiguration.Instance.MaxHistoryLog)
+                    logCount = 0;
+
+                if (_logsHistory.Count < ServerConfiguration.Instance.MaxHistoryLog)
+                {
+                    logCount++;
+                }
+                else
+                {
+                    _logsHistory.RemoveAt(0);
+                }
+
+                DateTime timestamp = logEntry.Timestamp;
+                while (_logsHistory.ContainsKey(timestamp))
+                {
+                    timestamp = timestamp.AddTicks(1);
+                }
+                _logsHistory.Add(timestamp, logEntry);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error logging message: {ex.Message}");
+            }
+            finally 
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        public void flushLog()
+        {
+            LogEntry logEntry;
+
+            Dictionary<string, StringBuilder> logsByModule = new Dictionary<string, StringBuilder>();
+            logsByModule["default"] = new StringBuilder();
+            logsByModule["Server"] = new StringBuilder();
+
+            foreach (var moduleName in Server.Instance.Modules.Keys)
+            {
+                logsByModule[moduleName.ToString()] = new StringBuilder();
+            }
+            StringBuilder sbDefault = new StringBuilder();
+            
             while (logs.Count > 0)
             {
-                if (logs.TryDequeue(out message))
+                if (logs.TryDequeue(out logEntry))
                 {
-                    sb.AppendLine(message);
+                    string log = $"{logEntry.Timestamp,-20} - Module: {logEntry.Module,-10} - Thread ID: {logEntry.ThreadID,-2} - {logEntry.Level,-10} - {logEntry.Message}";
+                    logsByModule[logEntry.Module].AppendLine(log);
                 }
             }
 
-            if (sb.Length > 0)
+            foreach (var moduleName in logsByModule.Keys)
             {
-                Log(sb.ToString());
+
+                if (logsByModule[moduleName].Length > 0)
+                {
+                    Log(logsByModule[moduleName].ToString(), moduleName);
+                }
+
             }
         }
-        private static void Log(string message)
+        private void Log(string message, string module)
         {
             try
             {
                 if (ServerConfiguration.Instance.LogToFile == true)
                 {
-                    // Vérifie si le répertoire de logs existe, sinon le crée
                     if (!Directory.Exists(logDirectory))
                     {
                         Directory.CreateDirectory(logDirectory);
                     }
 
-                    // Crée le chemin complet pour le fichier log
-                    string logFilePath = Path.Combine(logDirectory, logFileName);
-
-                    // Vérifie si le fichier de log dépasse la taille maximale
-                    if (File.Exists(logFilePath))
+                    foreach( var moduleConfig in ServerConfiguration.Instance.Modules)
                     {
-                        FileInfo fileInfo = new FileInfo(logFilePath);
-                        if (fileInfo.Length > maxSizeFile)
+                        if(moduleConfig.Name.Equals(module))
                         {
-                            RotateLog();
-                        }
-                    }
+                            string logFilePath = Path.Combine(logDirectory, moduleConfig.Logger.LogFile);
 
-                    // Écrit le message dans le fichier log, en ajoutant la date et l'heure actuelles
-                    using (StreamWriter sw = File.AppendText(logFilePath))
-                    {
-                        sw.Write($"{message}");
+
+                            if (File.Exists(logFilePath))
+                            {
+                                FileInfo fileInfo = new FileInfo(logFilePath);
+                                if (fileInfo.Length > maxSizeFile)
+                                {
+                                    RotateLog(logFilePath);
+                                }
+                            }
+
+                            using (StreamWriter sw = File.AppendText(logFilePath))
+                            {
+                                sw.Write($"{message}");
+                            }
+                            
+                            break;
+                        }
+
+
                     }
 
                 }
@@ -135,12 +223,10 @@ namespace pandapache.src.LoggingAndMonitoring
             }
         }
 
-        private static void RotateLog()
+        private void RotateLog(string logFilePath)
         {
             try
             {
-                // Crée le chemin complet pour le fichier log
-                string logFilePath = Path.Combine(logDirectory, logFileName);
 
                 // Renomme le fichier de log en ajoutant la date et l'heure actuelles au nom
                 string newLogFilePath = Path.Combine(logDirectory, $"{Path.GetFileNameWithoutExtension(logFileName)}_{DateTime.Now:yyyy-MM-dd-HH-mm}{Path.GetExtension(logFileName)}");
@@ -155,7 +241,7 @@ namespace pandapache.src.LoggingAndMonitoring
             }
         }
 
-        private static void DeleteOldLogFiles()
+        private void DeleteOldLogFiles()
         {
             try
             {
@@ -169,7 +255,7 @@ namespace pandapache.src.LoggingAndMonitoring
                 for (int i = maxLogFiles; i < logFiles.Length; i++)
                 {
                     logFiles[i].Delete();
-                }
+                }   
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿
 using pandapache.src.LoggingAndMonitoring;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src
 {
@@ -56,7 +57,7 @@ namespace pandapache.src
 
         private Dictionary<string, string> GetQueryParameters()
         {
-            Logger.LogInfo("Reading query string parameter");
+            ExecutionContext.Current.Logger.LogInfo("Reading query string parameter");
             var parameters = new Dictionary<string, string>();
 
             if (!string.IsNullOrEmpty(QueryString))
@@ -66,7 +67,7 @@ namespace pandapache.src
                 foreach (var pair in keyValuePairs)
                 {
                     var keyValue = pair.Split('=');
-                    Logger.LogDebug($"KeyValue: {keyValue}");
+                    ExecutionContext.Current.Logger.LogDebug($"KeyValue: {keyValue}");
 
                     if (keyValue.Length == 2)
                     {

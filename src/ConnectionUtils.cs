@@ -3,6 +3,7 @@ using pandapache.src.LoggingAndMonitoring;
 using pandapache.src.RequestHandling;
 using System.Net.Sockets;
 using System.Text;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src
 {
@@ -19,7 +20,7 @@ namespace pandapache.src
             string requestString = Encoding.UTF8.GetString(bufferRequest, 0, bytesRead);
             if (string.IsNullOrEmpty(requestString))
             {
-                Logger.LogWarning("Empty request received");
+                ExecutionContext.Current.Logger.LogWarning("Empty request received");
                 return null;
             }
 
@@ -27,13 +28,13 @@ namespace pandapache.src
             return request;
         }
 
-        public async static Task SendResponseAsync(ISocketWrapper client, HttpResponse response)
+        public async static Task SendResponseAsync(ISocketWrapper client, HttpResponse response, Request request)
         {
             try
             {
                 byte[] msg = Encoding.UTF8.GetBytes(response.ToString());
-                Logger.LogDebug("Reponse");
-                Logger.LogDebug(response.ToString());
+                ExecutionContext.Current.Logger.LogDebug("Reponse");
+                ExecutionContext.Current.Logger.LogDebug(response.ToString());
                 
                 await client.SendAsync(msg, SocketFlags.None);
 
@@ -50,7 +51,7 @@ namespace pandapache.src
             }
             catch(Exception ex) 
             {
-                Logger.LogError("Error sending response: " + ex.Message);
+                ExecutionContext.Current.Logger.LogError("Error sending response: " + ex.Message);
             }
 
 

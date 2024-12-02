@@ -1,5 +1,5 @@
-﻿using pandapache.src.LoggingAndMonitoring;
-using pandapache.src.RequestHandling;
+﻿using pandapache.src.RequestHandling;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace pandapache.src.Middleware
     {
@@ -13,24 +13,31 @@ namespace pandapache.src.Middleware
 
             public async Task InvokeAsync(HttpContext context)
             {
-                Logger.LogInfo("Logging Middleware");
+                ExecutionContext.Current.Logger.LogInfo("LoggerMiddleware invoked");
                 LogRequest(context.Request);
                 await _next(context);
-                LogResponse(context.Response);
+                if (context.Response != null)
+                {
+                    LogResponse(context.Response);
+                }
+                else
+                {
+                    Console.WriteLine(context.Request.Path);
+                }
             }
 
             private void LogRequest(Request request)
             {
-                Logger.LogInfo("Log Request");
+                ExecutionContext.Current.Logger.LogInfo("Log Request");
                 string logMessage = $"[{DateTime.UtcNow}] {request.Verb} {request.Path}";
-                Logger.LogInfo(logMessage);
+                ExecutionContext.Current.Logger.LogInfo(logMessage);
             }
 
             private void LogResponse(HttpResponse response)
             {
-                Logger.LogInfo("Log Response");
+                ExecutionContext.Current.Logger.LogInfo("Log Response");
                 string logMessage = $"[{DateTime.UtcNow}] Response status code: {response.StatusCode}";
-                Logger.LogInfo(logMessage);
+                ExecutionContext.Current.Logger.LogInfo(logMessage);
             }
         }
     }

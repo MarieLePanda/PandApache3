@@ -6,6 +6,9 @@ using PandApache3.src.Configuration;
 using System.Text;
 using System.Security.Cryptography;
 using PandApache3.src.ResponseGeneration;
+using PandApache3.src.LoggingAndMonitoring;
+using PandApache3.src.Module;
+using ExecutionContext = PandApache3.src.Module.ExecutionContext;
 
 namespace PandApache3.src.Middleware
 {
@@ -20,7 +23,7 @@ namespace PandApache3.src.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            Logger.LogDebug("Authentication Middleware");
+            ExecutionContext.Current.Logger.LogDebug("Authentication Middleware");
             // Récupérer l'en-tête d'authentification
             if (context.Request.Headers.ContainsKey("Authorization"))
             {
@@ -58,11 +61,11 @@ namespace PandApache3.src.Middleware
             bool exist = FileManagerFactory.Instance().Exists(authUserFile);
             if (string.IsNullOrEmpty(authUserFile) || exist == false)
             {
-                Logger.LogError($"Auth User File {authUserFile} don't exist");
+                ExecutionContext.Current.Logger.LogError($"Auth User File {authUserFile} don't exist");
                 return false; 
             }
 
-            Logger.LogInfo($"Reading from the auth user file {authUserFile}");
+            ExecutionContext.Current.Logger.LogInfo($"Reading from the auth user file {authUserFile}");
             foreach (string line in File.ReadAllLines(authUserFile))
             {
                 string[] parts = line.Split(':');

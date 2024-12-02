@@ -9,7 +9,7 @@ namespace pandapache.src.ErrorHandling
     {
         public static async Task<HttpResponse> HandleErrorAsync(Exception exception)
         {
-            Logger.LogError($"An error occurred: {exception.Message}");
+            Logger.Instance.LogError($"An error occurred: {exception.Message}");
 
             // You can implement custom logic to handle different types of exceptions here
             // For simplicity, this example returns a generic error response
