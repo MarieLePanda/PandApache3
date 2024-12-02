@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,10 @@ namespace PandApache3.src.LoggingAndMonitoring
             Message = message;
             Module = module;
             Level = level;
+        }
+        public override string ToString()
+        {
+            return $"{Timestamp,-20} - Module: {Module,-10} - Thread ID: {ThreadID,-2} - {Level,-10} - {Message}";
         }
     }
 

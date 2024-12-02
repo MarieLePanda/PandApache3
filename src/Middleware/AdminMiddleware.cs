@@ -121,7 +121,7 @@ namespace pandapache.src.Middleware
 
                 foreach(var logEntry in ((Logger) Logger.Instance).GetLogHistory())
                 {
-                    logs.Append(logEntry.Message + "\n");
+                    logs.Append(logEntry.ToString() + "\n");
                 }
                 response = new HttpResponse(200)
                 {
@@ -143,11 +143,18 @@ namespace pandapache.src.Middleware
                     }
                     else
                     {
+                        string scriptExtension = string.Empty;
+                        if(ServerConfiguration.Instance.Platform.Equals("WIN"))
+                            scriptExtension = ".ps1";
+                        else
+                            scriptExtension = ".sh";
+    
                         string bodyScript = string.Empty;
                         foreach (string script in Directory.GetFiles(scriptsDirectory))
                         {
                             FileInfo fileInfo = new FileInfo(script);
-                            bodyScript += $"{fileInfo.Name}\n";
+                            if(fileInfo.Extension.Equals(scriptExtension))
+                                bodyScript += $"{fileInfo.Name}\n";
                         }
 
                         response = new HttpResponse(200)
