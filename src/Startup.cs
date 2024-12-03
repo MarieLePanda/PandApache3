@@ -1,6 +1,7 @@
-﻿using pandapache.src.LoggingAndMonitoring;
-using pandapache.src.RequestHandling;
-using PandApache3.src.Module;
+﻿using PandApache3.src.Core;
+using PandApache3.src.Core.LoggingAndMonitoring;
+using PandApache3.src.Core.RequestHandling;
+using PandApache3.src.Modules.Web;
 using System.Diagnostics;
 
 class Startup
@@ -35,26 +36,27 @@ class Startup
             }
 
             string banner = @"
-            ██████╗  █████╗ ███╗   ██╗██████╗  █████╗ 
-            ██╔══██╗██╔══██╗████╗  ██║██╔══██╗██╔══██╗
-            ██████╔╝███████║██╔██╗ ██║██║  ██║███████║
-            ██╔═══╝ ██╔══██║██║╚██╗██║██║  ██║██╔══██║
-            ██║     ██║  ██║██║ ╚████║██████╔╝██║  ██║
-            ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝
-                                          
-            ██████╗  █████╗  ██████╗██╗  ██╗███████╗  
-            ██╔══██╗██╔══██╗██╔════╝██║  ██║██╔════╝  
-            ██████╔╝███████║██║     ███████║█████╗    
-            ██╔═══╝ ██╔══██║██║     ██╔══██║██╔══╝    
-            ██║     ██║  ██║╚██████╗██║  ██║███████╗  
-            ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝  
-                                          
-            ██████╗    ██████╗                        
-            ╚════██╗   ╚════██╗                       
-             █████╔╝    █████╔╝                       
-             ╚═══██╗    ╚═══██╗                       
-            ██████╔╝██╗██████╔╝                       
-            ╚═════╝ ╚═╝╚═════╝                        
+             _______                                 ______                                 __                 
+            |       \                               /      \                               |  \                
+            | $$$$$$$\ ______   _______    ______  |  $$$$$$\  ______    ______    _______ | $$____    ______  
+            | $$__/ $$|      \ |       \  /      \ | $$__| $$ /      \  |      \  /       \| $$    \  /      \ 
+            | $$    $$ \$$$$$$\| $$$$$$$\|  $$$$$$\| $$    $$|  $$$$$$\  \$$$$$$\|  $$$$$$$| $$$$$$$\|  $$$$$$\
+            | $$$$$$$ /      $$| $$  | $$| $$  | $$| $$$$$$$$| $$  | $$ /      $$| $$      | $$  | $$| $$    $$
+            | $$     |  $$$$$$$| $$  | $$| $$__/ $$| $$  | $$| $$__/ $$|  $$$$$$$| $$_____ | $$  | $$| $$$$$$$$
+            | $$      \$$    $$| $$  | $$| $$    $$| $$  | $$| $$    $$ \$$    $$ \$$     \| $$  | $$ \$$     \
+             \$$       \$$$$$$$ \$$   \$$| $$$$$$$  \$$   \$$| $$$$$$$   \$$$$$$$  \$$$$$$$ \$$   \$$  \$$$$$$$
+                                         | $$                | $$                                              
+                                         | $$                | $$                                              
+                                          \$$                 \$$                                              
+              ______   __    __                                                                                
+             /      \ |  \  |  \                                                                               
+            |  $$$$$$\| $$  | $$                                                                               
+             \$$__| $$| $$__| $$                                                                               
+              |     $$| $$    $$                                                                               
+             __\$$$$$\ \$$$$$$$$                                                                               
+            |  \__| $$ __   | $$                                                                               
+             \$$    $$|  \  | $$                                                                               
+              \$$$$$$  \$$   \$$                                                                               
             ";
 
             PandApache3.Init();
@@ -64,8 +66,9 @@ class Startup
             logger.GetReady();
             logger.flushLog();
             
-            PROCESSID = Process.GetCurrentProcess().Id;
-            PROCESSNAME = Process.GetCurrentProcess().ProcessName;
+            Process currentProcess = Process.GetCurrentProcess();
+            PROCESSID = currentProcess.Id;
+            PROCESSNAME = currentProcess.ProcessName;
             Logger.Instance.LogInfo($"PandApache3 process id:{PROCESSID}");
             Logger.Instance.LogInfo($"PandApache3 process name:{PROCESSNAME}");
             
