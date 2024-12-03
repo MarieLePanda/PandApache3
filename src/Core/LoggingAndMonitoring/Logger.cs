@@ -1,5 +1,6 @@
 ﻿using PandApache3.src.Core.Configuration;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text;
 
 namespace PandApache3.src.Core.LoggingAndMonitoring
@@ -150,8 +151,8 @@ namespace PandApache3.src.Core.LoggingAndMonitoring
             {
                 if (logs.TryDequeue(out logEntry))
                 {
-                    string log = $"{logEntry.Timestamp,-20} - Module: {logEntry.Module,-10} - Thread ID: {logEntry.ThreadID,-2} - {logEntry.Level,-10} - {logEntry.Message}";
-                    logsByModule[logEntry.Module].AppendLine(log);
+                    StringBuilder log = new StringBuilder($"{logEntry.Timestamp,-20} - Module: {logEntry.Module,-10} - Thread ID: {logEntry.ThreadID,-2} - {logEntry.Level,-10} - {logEntry.Message}");
+                    logsByModule.TryAdd(logEntry.Module, log);
                 }
             }
 

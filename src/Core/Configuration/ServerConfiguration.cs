@@ -132,7 +132,7 @@ namespace PandApache3.src.Core.Configuration
             string fullPath = Path.Combine(_configurationPath, "PandApache3.conf");
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException("The configuration file didn't exist", fullPath);
+                return;
             }
 
             try

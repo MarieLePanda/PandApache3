@@ -40,7 +40,7 @@ namespace PandApache3.src
 
         protected override void QueueTask(Task task)
         {
-            ExecutionContext.Current.Logger.LogInfo($"task {task.Id} queued for {_scheduleurName}");
+            ExecutionContext.Current.Logger.LogDebug($"task {task.Id} queued for {_scheduleurName}");
             if (_isDisposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);

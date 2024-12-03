@@ -102,11 +102,11 @@ namespace PandApache3.src.Modules.Admin.Middleware
             }
             else if (request.Path.ToLower().Equals(adminURL + "/stop"))
             {
-                Task.Run(() => Server.Instance.StoppAsync(false));
+                //Task.Run(() => Server.Instance.StoppAsync(false));
 
                 response = new HttpResponse(200)
                 {
-                    Body = new MemoryStream(Encoding.UTF8.GetBytes("Stopping...."))
+                    Body = new MemoryStream(Encoding.UTF8.GetBytes("I told you to not do that, your action will be reported to Microsoft!!!!"))
                 };
             }
             else if (request.Path.ToLower().Equals(adminURL + "/restart"))
