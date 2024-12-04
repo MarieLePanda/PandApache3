@@ -13,6 +13,7 @@ namespace PandApache3.src.Core.ConnectionManagement
         public async static Task<Request?> ParseRequestAsync(ISocketWrapper client)
         {
 
+            
             byte[] bufferRequest = new byte[1024];
             int bytesRead = client.Receive(bufferRequest);
             string requestString = Encoding.UTF8.GetString(bufferRequest, 0, bytesRead);
@@ -30,6 +31,8 @@ namespace PandApache3.src.Core.ConnectionManagement
         {
             try
             {
+                if (response == null)
+                    return;
                 byte[] msg = Encoding.UTF8.GetBytes(response.ToString());
                 ExecutionContext.Current.Logger.LogDebug("Reponse");
                 ExecutionContext.Current.Logger.LogDebug(response.ToString());

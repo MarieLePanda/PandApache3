@@ -15,6 +15,9 @@ namespace PandApache3.src.Core.Middleware
         public async Task InvokeAsync(HttpContext context)
         {
             ExecutionContext.Current.Logger.LogInfo("LoggerMiddleware invoked");
+            if (context.Request == null)
+                return;
+
             LogRequest(context.Request);
             await _next(context);
             if (context.Response != null)
@@ -30,8 +33,11 @@ namespace PandApache3.src.Core.Middleware
         private void LogRequest(Request request)
         {
             ExecutionContext.Current.Logger.LogInfo("Log Request");
-            string logMessage = $"[{DateTime.UtcNow}] {request.Verb} {request.Path}";
-            ExecutionContext.Current.Logger.LogInfo(logMessage);
+            if (request != null)
+            {
+                string logMessage = $"[{DateTime.UtcNow}] {request.Verb} {request.Path}";
+                ExecutionContext.Current.Logger.LogInfo(logMessage);
+            }
         }
 
         private void LogResponse(HttpResponse response)

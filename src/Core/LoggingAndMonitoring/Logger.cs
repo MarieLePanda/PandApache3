@@ -151,8 +151,8 @@ namespace PandApache3.src.Core.LoggingAndMonitoring
             {
                 if (logs.TryDequeue(out logEntry))
                 {
-                    StringBuilder log = new StringBuilder($"{logEntry.Timestamp,-20} - Module: {logEntry.Module,-10} - Thread ID: {logEntry.ThreadID,-2} - {logEntry.Level,-10} - {logEntry.Message}");
-                    logsByModule.TryAdd(logEntry.Module, log);
+                    string log = ($"{logEntry.Timestamp,-20} - Module: {logEntry.Module,-10} - Thread ID: {logEntry.ThreadID,-2} - {logEntry.Level,-10} - {logEntry.Message}\n");
+                    logsByModule[logEntry.Module].Append(log);
                 }
             }
 

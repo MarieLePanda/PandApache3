@@ -215,25 +215,24 @@ namespace PandApache3.src.Modules.Web
         {
             try
             {
+
                 Thread currentThread = Thread.CurrentThread;
                 ExecutionContext.Current.Logger.LogDebug($"Thread (Thread ID: {currentThread.ManagedThreadId}) HandleClientAsync function");
 
-                var taskParsing = TaskFactory.StartNew(() => ConnectionUtils.ParseRequestAsync(client)).Unwrap();
-                Request request = await taskParsing;
-                if (request == null)
-                {
-                    return;
-                }
-                HttpContext context = new HttpContext(request, null);
+                    var taskParsing = TaskFactory.StartNew(() => ConnectionUtils.ParseRequestAsync(client)).Unwrap();
+                    Request request = await taskParsing;
+
+                        HttpContext context = new HttpContext(request, null);
 
 
-                var taskPipeline = TaskFactory.StartNew(() => _pipeline(context)).Unwrap();
-                await taskPipeline;
+                        var taskPipeline = TaskFactory.StartNew(() => _pipeline(context)).Unwrap();
+                        await taskPipeline;
 
-                var taskSending = TaskFactory.StartNew(() => ConnectionUtils.SendResponseAsync(client, context.Response, context.Request)).Unwrap();
+                        var taskSending = TaskFactory.StartNew(() => ConnectionUtils.SendResponseAsync(client, context.Response, context.Request)).Unwrap();
 
-                await taskSending;
-
+                        await taskSending;
+                    
+                
                 _clients.TryRemove(clientId, out client);
             }
             catch (Exception ex)
