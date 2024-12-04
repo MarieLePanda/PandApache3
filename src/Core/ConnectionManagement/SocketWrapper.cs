@@ -16,6 +16,8 @@ namespace PandApache3.src.Core.ConnectionManagement
             return _socket.Receive(buffer);
         }
 
+        public bool Connected {  get { return _socket.Connected; } }
+
         public void Dispose()
         {
             _socket.Dispose();
