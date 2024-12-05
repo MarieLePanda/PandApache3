@@ -165,30 +165,46 @@ namespace PandApache3.src.Modules.Telemetry
             while ((DateTime.Now - startTime).TotalSeconds < collectionDurationSeconds)
             {
 
-
-                // Assuming you have a method to wait for the tasks to complete
-                var tasks = new List<Task>
+                if (ServerConfiguration.Instance.Platform.Equals("WIN"))
                 {
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["CpuUsagePercentage"].Add(GetTelemetryValue("CpuUsagePercentage", samples, delay))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["AvailableMemoryMB"].Add(GetTelemetryValue("AvailableMemoryMB", samples, delay))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["PrivateMemoryUsageMB"].Add(GetTelemetryValue("PrivateMemoryUsageMB", samples, delay, convertToMB: true))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["VirtualMemoryUsageMB"].Add(GetTelemetryValue("VirtualMemoryUsageMB", samples, delay, convertToMB: true))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskReadBytesPerSecond"].Add(GetTelemetryValue("DiskReadBytesPerSecond", samples, delay))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskWriteBytesPerSecond"].Add(GetTelemetryValue("DiskWriteBytesPerSecond", samples, delay))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskQueueLength"].Add(GetTelemetryValue("DiskQueueLength", samples, delay))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["GCCollectionCount"].Add(GetTelemetryValue("GCCollectionCount", samples, delay))),
-                    Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["GCHeapSizeBytes"].Add(GetTelemetryValue("GCHeapSizeBytes", samples, delay))),
-                };
+                    var tasks = new List<Task>
+                    {
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["CpuUsagePercentage"].Add(GetTelemetryValue("CpuUsagePercentage", samples, delay))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["AvailableMemoryMB"].Add(GetTelemetryValue("AvailableMemoryMB", samples, delay))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["PrivateMemoryUsageMB"].Add(GetTelemetryValue("PrivateMemoryUsageMB", samples, delay, convertToMB: true))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["VirtualMemoryUsageMB"].Add(GetTelemetryValue("VirtualMemoryUsageMB", samples, delay, convertToMB: true))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskReadBytesPerSecond"].Add(GetTelemetryValue("DiskReadBytesPerSecond", samples, delay))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskWriteBytesPerSecond"].Add(GetTelemetryValue("DiskWriteBytesPerSecond", samples, delay))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskQueueLength"].Add(GetTelemetryValue("DiskQueueLength", samples, delay))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["GCCollectionCount"].Add(GetTelemetryValue("GCCollectionCount", samples, delay))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["GCHeapSizeBytes"].Add(GetTelemetryValue("GCHeapSizeBytes", samples, delay))),
+                    };
 
-                // Wait for all tasks to complete
-                await Task.WhenAll(tasks);
+                    await Task.WhenAll(tasks);
+
+                }
+                else
+                {
+                    var tasks = new List<Task>{
+
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["CpuUsagePercentage"].Add(GetTelemetryValue("CpuUsagePercentage", samples, delay))),
+                    };
+
+                    await Task.WhenAll(tasks);
+
+                    //ExecutionContext.Current.Logger.LogInfo($"Telemetry for plateform {ServerConfiguration.Instance.Platform} not supported");
+                }
             }
             ExecutionContext.Current.Logger.LogDebug($"New collect start time: {startTime}");
 
             DateTime metricTimestamp = DateTime.Now;
             foreach (var average in averages)
             {
-                _metrics[average.Key].Enqueue(new KeyValuePair<DateTime, double>(metricTimestamp, average.Value.Average()));
+                if (average.Value.Count != 0)
+                {
+                    Console.WriteLine($"Adding {average.Key}");
+                    _metrics[average.Key].Enqueue(new KeyValuePair<DateTime, double>(metricTimestamp, average.Value.Average()));
+                }
             }
         }
 
@@ -206,44 +222,68 @@ namespace PandApache3.src.Modules.Telemetry
 
         public double GetTelemetryValue(string metricName, int samples = 4, int delay = 1000, bool convertToMB = false)
         {
-            string category, counter, instance;
-
-            if (staticCounters.TryGetValue(metricName, out var staticCounterInfo))
+            if (true)
             {
-                (category, counter, instance) = staticCounterInfo;
-            }
+                double totalValue = 0;
+                switch (metricName)
+                {
+                    case "CpuUsagePercentage":
 
-            else if (processSpecificCounters.TryGetValue(metricName, out var processSpecificCounterInfo))
-            {
-                (category, counter) = processSpecificCounterInfo;
-                instance = Process.GetCurrentProcess().ProcessName;
-            }
-            else if (processSpecificCounters.TryGetValue(metricName, out var networkSpecificCounters))
-            {
-                (category, counter) = networkSpecificCounters;
-                instance = _nic.Name;
-            }
+                        for (int i = 0; i < samples; i++)
+                        {
+                            Thread.Sleep(delay); // Wait between samples
+                            var cpuLine = File.ReadAllLines("/proc/stat").FirstOrDefault(line => line.StartsWith("cpu"));
+                            string[] cpuValues = cpuLine.Split(' ');
+                            totalValue += int.Parse(cpuValues[4]);
+                        }
+                        totalValue = totalValue / samples;
 
+                        break;
+                }
+                return totalValue;
+            }
             else
             {
-                throw new ArgumentException($"Unknown metric: {metricName}");
-            }
+                string category, counter, instance;
 
-            double totalValue = 0;
-            using (var performanceCounter = new PerformanceCounter(category, counter, instance))
-            {
-                performanceCounter.NextValue(); // Initial call to start measurement
-                for (int i = 0; i < samples; i++)
+                if (staticCounters.TryGetValue(metricName, out var staticCounterInfo))
                 {
-                    Thread.Sleep(delay); // Wait between samples
-                    double value = performanceCounter.NextValue();
-                    totalValue += convertToMB ? value / (1024 * 1024) : value;
+                    (category, counter, instance) = staticCounterInfo;
                 }
-            }
 
-            double averageValue = totalValue / samples;
-            ExecutionContext.Current.Logger.LogDebug($"{metricName}: {averageValue}");
-            return averageValue;
+                else if (processSpecificCounters.TryGetValue(metricName, out var processSpecificCounterInfo))
+                {
+                    (category, counter) = processSpecificCounterInfo;
+                    instance = Process.GetCurrentProcess().ProcessName;
+                }
+                else if (processSpecificCounters.TryGetValue(metricName, out var networkSpecificCounters))
+                {
+                    (category, counter) = networkSpecificCounters;
+                    instance = _nic.Name;
+                }
+
+                else
+                {
+                    throw new ArgumentException($"Unknown metric: {metricName}");
+                }
+
+                double totalValue = 0;
+                using (var performanceCounter = new PerformanceCounter(category, counter, instance))
+                {
+                    performanceCounter.NextValue(); // Initial call to start measurement
+                    for (int i = 0; i < samples; i++)
+                    {
+                        Thread.Sleep(delay); // Wait between samples
+                        double value = performanceCounter.NextValue();
+                        totalValue += convertToMB ? value / (1024 * 1024) : value;
+                    }
+                }
+
+                double averageValue = totalValue / samples;
+                ExecutionContext.Current.Logger.LogDebug($"{metricName}: {averageValue}");
+                return averageValue;
+
+            }
         }
 
         public void ListInstances(string categoryName)

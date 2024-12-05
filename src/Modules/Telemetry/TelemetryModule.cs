@@ -59,7 +59,7 @@ namespace PandApache3.src.Modules.Telemetry
 
             while (_cancellationTokenSource.IsCancellationRequested == false)
             {
-                await TaskFactory.StartNew(() => TelemetryCollector.CollectMetricsAsync(30));
+                await TaskFactory.StartNew(() => TelemetryCollector.CollectMetricsAsync(15));
 
             }
         }
