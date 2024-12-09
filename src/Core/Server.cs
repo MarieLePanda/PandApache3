@@ -20,6 +20,7 @@ namespace PandApache3.src.Core
         public readonly CancellationTokenSource CancellationTokenSource;
         private static AsyncLocal<ModuleConfiguration> _current = new AsyncLocal<ModuleConfiguration>();
         public ModuleConfiguration ModuleInfo;
+
         public IFileManager fileManager;
         private static Server _instance;
 

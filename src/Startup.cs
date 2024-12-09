@@ -23,6 +23,12 @@ class Startup
     {
         Logger logger = (Logger)Logger.Instance;
         Server PandApache3 = Server.Instance;
+        Process currentProcess = Process.GetCurrentProcess();
+        PROCESSID = currentProcess.Id;
+        PROCESSNAME = currentProcess.ProcessName;
+        Logger.Instance.LogInfo($"PandApache3 process id:{PROCESSID}");
+        Logger.Instance.LogInfo($"PandApache3 process name:{PROCESSNAME}");
+
 
         while (PandApache3.CancellationTokenSource.IsCancellationRequested == false)
         {
@@ -66,11 +72,6 @@ class Startup
             logger.GetReady();
             logger.flushLog();
             
-            Process currentProcess = Process.GetCurrentProcess();
-            PROCESSID = currentProcess.Id;
-            PROCESSNAME = currentProcess.ProcessName;
-            Logger.Instance.LogInfo($"PandApache3 process id:{PROCESSID}");
-            Logger.Instance.LogInfo($"PandApache3 process name:{PROCESSNAME}");
             
             await PandApache3.RunAsync();
 
