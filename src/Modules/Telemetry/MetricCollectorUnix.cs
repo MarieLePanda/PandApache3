@@ -17,7 +17,8 @@ namespace PandApache3.src.Modules.Telemetry
             return new List<string>{
                 "CpuUsagePercentage",
                 "AvailableMemoryMB",
-                "PrivateMemoryUsageMB"
+                "PrivateMemoryUsageMB",
+                "VirtualMemoryUsageMB"
             };
         }
 
@@ -26,6 +27,7 @@ namespace PandApache3.src.Modules.Telemetry
             { "CpuUsagePercentage", "/proc/stat" },
             { "AvailableMemoryMB", "/proc/meminfo" },
             { "PrivateMemoryUsageMB", $"/proc/{Startup.PROCESSID}/status"},
+            { "VirtualMemoryUsageMB", $"/proc/{Startup.PROCESSID}/status"},
             { "NetworkBytesReceivedPerSecond", "/proc/net/dev" }, // Réseau : octets reçus
             { "NetworkBytesSentPerSecond", "/proc/net/dev" } // Réseau : octets envoyés
         };
@@ -57,7 +59,8 @@ namespace PandApache3.src.Modules.Telemetry
                 {
                     "CpuUsagePercentage" => ParseCpuUsage(content),
                     "AvailableMemoryMB" => ParseAvailableMemory(content),
-                    "PrivateMemoryUsageMB" => ParsePrivateMemoryUsage(content),
+                    "PrivateMemoryUsageMB" => ParseStatus(content, "VmRSS"),
+                    "VirtualMemoryUsageMB" => ParseStatus(content, "VmSize"),
                     "NetworkBytesReceivedPerSecond" => ParseNetworkBytes(content, received: true),
                     "NetworkBytesSentPerSecond" => ParseNetworkBytes(content, received: false),
                     _ => throw new NotSupportedException($"Parser for metric '{metricName}' not implemented.")
@@ -104,19 +107,19 @@ namespace PandApache3.src.Modules.Telemetry
             }
         }
 
-        private double ParsePrivateMemoryUsage(string statusContent)
+        private double ParseStatus(string statusContent, string name)
         {
             var lines = statusContent.Split('\n');
-            var VmRSS = lines.FirstOrDefault(line => line.StartsWith("VmRSS"));
+            var attribut = lines.FirstOrDefault(line => line.StartsWith(name));
 
-            if (VmRSS != null)
+            if (attribut != null)
             {
-                var valueInKb = double.Parse(VmRSS.Split(':')[1].Trim().Split(' ')[0]);
+                var valueInKb = double.Parse(attribut.Split(':')[1].Trim().Split(' ')[0]);
                 return valueInKb ;
             }
             else
             {
-                ExecutionContext.Current.Logger.LogError($"Could not find VmRSS in /proc/{Startup.PROCESSID}/status");
+                ExecutionContext.Current.Logger.LogError($"Could not find {name} in /proc/{Startup.PROCESSID}/status");
                 return -1;
             }
         }
