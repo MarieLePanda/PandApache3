@@ -4,6 +4,7 @@ using PandApache3.src.Core.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net.NetworkInformation;
+using System.Xml.Linq;
 using ExecutionContext = PandApache3.src.Core.Module.ExecutionContext;
 
 namespace PandApache3.src.Modules.Telemetry
@@ -18,7 +19,10 @@ namespace PandApache3.src.Modules.Telemetry
                 "CpuUsagePercentage",
                 "AvailableMemoryMB",
                 "PrivateMemoryUsageMB",
-                "VirtualMemoryUsageMB"
+                "VirtualMemoryUsageMB",
+                "DiskReadBytesPerSecond",
+                "DiskWriteBytesPerSecond",
+                "DiskQueueLength",
             };
         }
 
@@ -28,6 +32,9 @@ namespace PandApache3.src.Modules.Telemetry
             { "AvailableMemoryMB", "/proc/meminfo" },
             { "PrivateMemoryUsageMB", $"/proc/{Startup.PROCESSID}/status"},
             { "VirtualMemoryUsageMB", $"/proc/{Startup.PROCESSID}/status"},
+            { "DiskReadBytesPerSecond", "/proc/diskstats"},
+            { "DiskWriteBytesPerSecond", "/proc/diskstats" },
+            { "DiskQueueLength", "/proc/diskstats" },
             { "NetworkBytesReceivedPerSecond", "/proc/net/dev" }, // Réseau : octets reçus
             { "NetworkBytesSentPerSecond", "/proc/net/dev" } // Réseau : octets envoyés
         };
@@ -54,13 +61,18 @@ namespace PandApache3.src.Modules.Telemetry
             for(int i = 0; i < samples; i++)
             {
                 Thread.Sleep(delay); // Wait between samples
-                string content = File.ReadAllText(staticCountersLinux[metricName]);
+                string content = string.Empty;
+                if(!metricName.Equals("DiskReadBytesPerSecond") || metricName.Equals("DiskWriteBytesPerSecond"))
+                    content = File.ReadAllText(staticCountersLinux[metricName]);
                 double value = metricName switch
                 {
                     "CpuUsagePercentage" => ParseCpuUsage(content),
                     "AvailableMemoryMB" => ParseAvailableMemory(content),
                     "PrivateMemoryUsageMB" => ParseStatus(content, "VmRSS"),
                     "VirtualMemoryUsageMB" => ParseStatus(content, "VmSize"),
+                    "DiskReadBytesPerSecond" => ParseDiskstats(staticCountersLinux[metricName], 3),
+                    "DiskWriteBytesPerSecond" => ParseDiskstats(staticCountersLinux[metricName], 7),
+                    "DiskQueueLength" => ParseDiskstatsQueue(content, 11),
                     "NetworkBytesReceivedPerSecond" => ParseNetworkBytes(content, received: true),
                     "NetworkBytesSentPerSecond" => ParseNetworkBytes(content, received: false),
                     _ => throw new NotSupportedException($"Parser for metric '{metricName}' not implemented.")
@@ -122,6 +134,77 @@ namespace PandApache3.src.Modules.Telemetry
                 ExecutionContext.Current.Logger.LogError($"Could not find {name} in /proc/{Startup.PROCESSID}/status");
                 return -1;
             }
+        }
+
+        private double ParseDiskstats(string fileName, int column)
+        {
+            long[] sectorValue = new long[2];
+            for(int i = 0; i < 2; i++)
+            {
+                string diskstatsContent = File.ReadAllText(fileName);
+                Thread.Sleep(1000);
+                var lines = diskstatsContent.Split('\n');
+                var sdaLine = lines.FirstOrDefault(line =>
+                {
+                    var columns = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    return columns.Length > 2 && columns[2] == "sdc";
+                });
+
+                if (sdaLine != null)
+                {
+                    string[] sdaArray = sdaLine.Split(" ");
+                    List<string> sdaCleaned = new List<string>();
+
+                    foreach(string value in sdaArray)
+                    {
+                        if (!string.IsNullOrEmpty(value))
+                            sdaCleaned.Add(value);
+                    }
+                    string toParse = sdaCleaned[column];
+                    sectorValue[i] = long.Parse(toParse);
+                }
+                else
+                {
+                    ExecutionContext.Current.Logger.LogError("'sdc' not found in diskstats.");
+                    return -1;
+                }
+
+            }
+
+            long bytesPerSecond = (sectorValue[1] - sectorValue[0]) * 512;
+
+            return bytesPerSecond;
+        }
+
+        private double ParseDiskstatsQueue(string diskContent, int column)
+        {
+            var lines = diskContent.Split('\n');
+
+            var sdaLine = lines.FirstOrDefault(line =>
+            {
+                var columns = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                return columns.Length > 2 && columns[2] == "sdc";
+            });
+            if (sdaLine != null)
+            {
+                string[] sdaArray = sdaLine.Split(" ");
+                List<string> sdaCleaned = new List<string>();
+
+                foreach (string value in sdaArray)
+                {
+                    if (!string.IsNullOrEmpty(value))
+                        sdaCleaned.Add(value);
+                }
+                string toParse = sdaCleaned[column];
+                long queueLength = long.Parse(toParse);
+                return queueLength;
+            }
+            else
+            {
+                ExecutionContext.Current.Logger.LogError("'sdc' not found in diskstats.");
+                return -1;
+            }
+
         }
 
         private double ParseNetworkBytes(string netDevContent, bool received)

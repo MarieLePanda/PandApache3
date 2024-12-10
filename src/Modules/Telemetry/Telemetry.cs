@@ -152,10 +152,13 @@ namespace PandApache3.src.Modules.Telemetry
                 {
                     tasks = new List<Task>
                     {
-                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["CpuUsagePercentage"].Add(GetTelemetryValue("CpuUsagePercentage", samples, delay))),
-                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["AvailableMemoryMB"].Add(GetTelemetryValue("AvailableMemoryMB", samples, delay, true))),
-                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["PrivateMemoryUsageMB"].Add(GetTelemetryValue("PrivateMemoryUsageMB", samples, delay, true))),
-                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["VirtualMemoryUsageMB"].Add(GetTelemetryValue("VirtualMemoryUsageMB", samples, delay, true))),
+                        //Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["CpuUsagePercentage"].Add(GetTelemetryValue("CpuUsagePercentage", samples, delay))),
+                        //Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["AvailableMemoryMB"].Add(GetTelemetryValue("AvailableMemoryMB", samples, delay, true))),
+                        //Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["PrivateMemoryUsageMB"].Add(GetTelemetryValue("PrivateMemoryUsageMB", samples, delay, true))),
+                        //Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["VirtualMemoryUsageMB"].Add(GetTelemetryValue("VirtualMemoryUsageMB", samples, delay, true))),
+                        //Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskReadBytesPerSecond"].Add(GetTelemetryValue("DiskReadBytesPerSecond", samples, delay))),
+                        //Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskWriteBytesPerSecond"].Add(GetTelemetryValue("DiskWriteBytesPerSecond", samples, delay))),
+                        Server.Instance.GetModule<TelemetryModule>(ModuleType.Telemetry).TaskFactory.StartNew(() => averages["DiskQueueLength"].Add(GetTelemetryValue("DiskQueueLength", samples, delay))),
                     };
                 }
 
